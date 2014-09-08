@@ -84,13 +84,10 @@ func (bc *BuildController) watchBuilds(syncTime <-chan time.Time) {
 	}
 }
 
-func hasTimeoutElapsed(build *api.Build, timeout int) (bool, error) {
+func hasTimeoutElapsed(build *api.Build, timeout int) bool {
 	timestamp := build.CreationTimestamp
 	elapsed := time.Since(timestamp.Time)
-	if int(elapsed.Seconds()) > timeout {
-		return true, nil
-	}
-	return false, nil
+	return int(elapsed.Seconds()) > timeout
 }
 
 // Determine the next status of a build given its current state and the state
@@ -106,7 +103,7 @@ func (bc *BuildController) synchronize(build *api.Build) (api.BuildStatus, error
 	case api.BuildPending:
 		buildStrategy, ok := bc.buildStrategies[build.Config.Type]
 		if !ok {
-			return build.Status, fmt.Errorf("No build type for %s")
+			return build.Status, fmt.Errorf("No build type for %s", build.Config.Type)
 		}
 
 		podSpec := buildStrategy.CreateBuildPod(build, bc.dockerRegistry)
@@ -125,10 +122,7 @@ func (bc *BuildController) synchronize(build *api.Build) (api.BuildStatus, error
 
 		return api.BuildRunning, nil
 	case api.BuildRunning:
-		timedOut, err := hasTimeoutElapsed(build, bc.timeout)
-		if err != nil {
-			return api.BuildFailed, err
-		}
+		timedOut := hasTimeoutElapsed(build, bc.timeout)
 		if timedOut {
 			return api.BuildFailed, fmt.Errorf("Build timed out")
 		}
