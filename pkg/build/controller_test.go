@@ -79,8 +79,8 @@ func TestSynchronizeBuildPendingUnknownStrategy(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error, but none happened!")
 	}
-	if status != api.BuildPending {
-		t.Errorf("Expected BuildPending, got %s!", status)
+	if status != api.BuildError {
+		t.Errorf("Expected BuildError, got %s!", status)
 	}
 }
 
@@ -149,7 +149,7 @@ func TestSynchronizeBuildRunningPodRunning(t *testing.T) {
 	}
 }
 
-func TestSynchronizeBuildRunning(t *testing.T) {
+func TestSynchronizeBuildRunningPodTerminated(t *testing.T) {
 	ctrl, build := setup()
 	ctrl.kubeClient = &okKubeClient{}
 	build.Status = api.BuildRunning

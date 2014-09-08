@@ -103,7 +103,7 @@ func (bc *BuildController) synchronize(build *api.Build) (api.BuildStatus, error
 	case api.BuildPending:
 		buildStrategy, ok := bc.buildStrategies[build.Config.Type]
 		if !ok {
-			return build.Status, fmt.Errorf("No build type for %s", build.Config.Type)
+			return api.BuildError, fmt.Errorf("No build type for %s", build.Config.Type)
 		}
 
 		podSpec := buildStrategy.CreateBuildPod(build, bc.dockerRegistry)
@@ -122,8 +122,7 @@ func (bc *BuildController) synchronize(build *api.Build) (api.BuildStatus, error
 
 		return api.BuildRunning, nil
 	case api.BuildRunning:
-		timedOut := hasTimeoutElapsed(build, bc.timeout)
-		if timedOut {
+		if timedOut := hasTimeoutElapsed(build, bc.timeout); timedOut {
 			return api.BuildFailed, fmt.Errorf("Build timed out")
 		}
 
