@@ -103,7 +103,7 @@ angular.module('openshiftConsole')
     var url = $routeParams.url;
     
     if (!name && !url) {
-      errorPage("Cannot create template: a template name or URL was not specified.");
+      errorPage("Cannot create from template: a template name or URL was not specified.");
       return;
     }
 
@@ -123,7 +123,7 @@ angular.module('openshiftConsole')
         template.labels = template.labels || {};
       },
       function(data) {
-        errorPage("Cannot create template: the specified template could not be retrieved.");
+        errorPage("Cannot create from template: the specified template could not be retrieved.");
       }
     );
   });
