@@ -124,7 +124,12 @@ angular
       .when('/project/:project/browse/services', {
         templateUrl: 'views/services.html'
       })
-
+      .when('/project/:project/catalog', {
+	      templateUrl: 'views/catalog.html'
+      })
+      .when('/project/:project/newfromtemplate', {
+	      templateUrl: 'views/newfromtemplate.html'
+      })
       .when('/oauth', {
         templateUrl: 'views/util/oauth.html',
         controller: 'OAuthController'
