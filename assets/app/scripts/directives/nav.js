@@ -74,4 +74,14 @@ angular.module('openshiftConsole')
       transclude: true,
       templateUrl: 'views/_project-page.html'
     };
-  });
+  })
+  .directive('back', ['$window', function($window) {
+    return {
+      restrict: 'A',
+      link: function (scope, elem, attrs) {
+        elem.bind('click', function () {
+          $window.history.back();
+        });
+      }
+    };
+  }]);

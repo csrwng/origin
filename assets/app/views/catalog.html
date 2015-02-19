@@ -1,0 +1,51 @@
+<div ng-controller="CatalogController">
+  <h1>Components</h1>
+  <section class="component-search">
+    <label>Search for templates or images</label>
+    <input ng-model="searchText" type="text" class="search" />
+  </section>
+  <section class="template-list">
+    <ul>
+      <li>
+        <templates list="myTemplates" title="'My Templates'"></templates>
+      </li>
+      <li>
+        <templates list="myOrgTemplates" title="myorgTitle + ' Templates'"></templates>
+      </li>
+        <li ng-include="views/_custom_create.html">
+      </li>
+    </ul>
+  </section>
+  <section class="template-list">
+    <ul>
+      <li>
+        <templates list="featured[0].list" title="featured[0].title"></templates>
+      </li>
+      <li>
+        <templates list="featured[1].list" title="featured[1].title"></templates>
+      </li>
+      <li>
+        <templates list="features[2].list" title="featured[2].title"></templates>
+      </li>
+    </ul>
+  </section>
+  <section class="browse">
+    <ul>
+      <li class="category-list">
+        <h3>Browse by Language</h3>
+        <ul ng-repeat="language in languages">
+          <li>
+            <a href="">{{ language }}</a>
+          </li>
+        </ul>
+      </li>
+      <li class="category-list">
+        <h3>Browse by Category</h3>
+        <ul ng-repeat="cateogry in categories">
+          <li>
+            <a href="">{{ category }}</a>
+          </li>
+        </ul>
+      </li>
+  </section>
+</div>
