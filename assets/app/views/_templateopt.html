@@ -1,0 +1,21 @@
+<div class="template-options" ng-if="hasParameters">
+  <h3 style="display:inline">Template options</h3> 
+  <a href ng-click="toggleOptionsExpanded()">
+    <span ng-show="optionsExpanded" class="fa fa-caret-down btn-lg" title="Collapse"></span>
+    <span ng-hide="optionsExpanded" class="fa fa-caret-right btn-lg" title="Expand"></span>
+  </a> 
+  <ul class="options" ng-repeat="parameter in template.parameters" ng-show="optionsExpanded">
+    <li>
+      <label for="param-{{$index}}" style="cursor:help"
+        title="{{ parameter.description }}">{{parameter.name}}</label>
+      <input id="param-{{$index}}" type="text" value="{{ parameter.value }}"
+        placeholder="{{ parameter | parameterPlaceholder }}" 
+        ng-model="parameter.value" />
+    </li>
+  </ul>
+  <ul class="options" ng-repeat="parameter in template.parameters" ng-hide="optionsExpanded">
+    <li>
+      {{ parameter.name }}: {{ parameter | parameterValue }}
+    </li>
+  </ul>
+</div>

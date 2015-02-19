@@ -20,6 +20,17 @@ angular.module('openshiftConsole')
       return null;
     };
   })  
+  .filter('icon', function(annotationFilter) {
+    return function(resource) {
+      var icon = annotationFilter(resource, "icon");
+      if (!icon) {
+        //FIXME: Return default icon for resource.kind
+        return ""
+      } else {
+        return icon
+      }
+    }
+  })
   .filter('imageName', function() {
     return function(image) {
       if (!image) {
@@ -82,4 +93,22 @@ angular.module('openshiftConsole')
         }
         return url;
     };
+  })
+  .filter('parameterPlaceholder', function() {
+    return function(parameter) {
+      if (parameter.generate) {
+        return "(generated)"
+      } else {
+        return ""
+      }
+    }
+  })
+ .filter('parameterValue', function() {
+    return function(parameter) {
+      if (!parameter.value && parameter.generate) {
+        return "(generated)"
+      } else {
+        return parameter.value
+      }
+    }
   });

@@ -159,6 +159,92 @@ angular.module('openshiftConsole')
     }
   	return deferred.promise;
   };
+  
+// type:      API type (e.g. "pods")
+// object:    API object data(eg. { kind: "Build", parameters: { ... } } )
+// context:   API context (e.g. {project: "..."})
+// opts:      http - options to pass to the inner $http call
+// Returns a promise resolved with response data or rejected with {data:..., status:..., headers:..., config:...} when the delete call completes.
+  DataService.prototype.create = function(type, object, context, opts) {
+  	opts = opts || {};
+  	var deferred = $q.defer();
+    if (context.projectPromise && type !== "projects") {
+      var self = this;
+      context.projectPromise.done(function(project) {
+        $http(angular.extend({
+          method: 'POST',
+          data: object,
+          url: self._urlForType(type, null, context, false, {namespace: project.metadata.name})
+        }, opts.http || {}))
+        .success(function(data, status, headerFunc, config, statusText) {
+          deferred.resolve(data);
+        })
+        .error(function(data, status, headers, config) {
+          deferred.reject({
+            data: data,
+            status: status,
+            headers: headers,
+            config: config
+          });
+        });
+      });
+    }
+    else {
+      $http(angular.extend({
+        method: 'POST',
+        data: object,
+        url: this._urlForType(type, null, context)
+      }, opts.http || {}))
+      .success(function(data, status, headerFunc, config, statusText) {
+        deferred.resolve(data);
+      })
+      .error(function(data, status, headers, config) {
+        deferred.reject({
+          data: data, 
+          status: status, 
+          headers: headers, 
+          config: config
+        });
+      });
+    }
+  	return deferred.promise;
+  };
+  
+
+  // objects:   Array of API object data(eg. [{ kind: "Build", parameters: { ... } }] )
+  // context:   API context (e.g. {project: "..."})
+  // opts:      http - options to pass to the inner $http call
+  // Returns a promise resolved with an an object like: { success: {}, failure: {} }
+  // where success and failure contain an array of 
+  DataService.prototype.createList = function(objects, context, opts) {
+    var result = $q.defer();
+    var success_results = []
+    var failure_results = []
+    var self = this;
+    var remaining = objects.length
+    
+    function _checkDone() {
+      if (remaining == 0) {
+        result.resolve({ success: success_results, failure: failure_results })
+      }
+    }
+    
+    objects.forEach(function(object) {
+      self.create(self._objectType(object.kind), object, context, opts).then(
+        function (data) {
+          success_results.push(data);
+          remaining--;
+          _checkDone();
+        },
+        function (data) {
+          failure_results.push(data);
+          remaining--;
+          _checkDone();
+        }
+      );
+    });
+    return result.promise;
+  }
 
 // type:      API type (e.g. "pods")
 // name:      API name, the unique name for the object 
@@ -232,6 +318,30 @@ angular.module('openshiftConsole')
       }
     }
     return deferred.promise;
+  };
+  
+// name:      API name, the unique name for the object 
+// namespace: API namespace
+// url:       External URL
+// context:   API context, (e.g. { project: "..."})
+// opts:      force - always request (default is false)
+//            http - options to pass to the inner $http call
+  DataService.prototype.getTemplate = function(name, namespace, url, context, opts) {
+    if (name) {
+      if (namespace) {
+        context = { 
+          projectPromise: {
+            done: function(f) {
+              f({ metadata: {name: namespace } });
+            }
+          }
+        }
+      }
+      return this.get("templates", name, context, opts);
+    }
+    else {
+      return this.create("remoteTemplates", { remoteurl: url }, context, opts);
+    }
   };
 
 // type:      API type (e.g. "pods")
@@ -550,23 +660,34 @@ angular.module('openshiftConsole')
   // an introspection endpoint that would give us this mapping
   // https://github.com/openshift/origin/issues/230
   var SERVER_TYPE_MAP = {
-    builds:                 API_CFG.openshift,
-    buildConfigs:           API_CFG.openshift,
-    buildConfigHooks:       API_CFG.openshift,
-    deploymentConfigs:      API_CFG.openshift,
-    images:                 API_CFG.openshift,
-    oAuthAccessTokens:      API_CFG.openshift,
-    projects:               API_CFG.openshift,
-    users:                  API_CFG.openshift,
-    routes:                 API_CFG.openshift,
+    builds:                    API_CFG.openshift,
+    buildConfigs:              API_CFG.openshift,
+    buildConfigHooks:          API_CFG.openshift,
+    deploymentConfigs:         API_CFG.openshift,
+    images:                    API_CFG.openshift,
+    imageRepositories:         API_CFG.openshift,
+    oAuthAccessTokens:         API_CFG.openshift,
+    oAuthAuthorizeTokens:      API_CFG.openshift,
+    oAuthClients:              API_CFG.openshift,
+    oAuthClientAuthorizations: API_CFG.openshift,
+    policies:                  API_CFG.openshift,
+    policyBindings:            API_CFG.openshift,
+    projects:                  API_CFG.openshift,
+    remoteTemplates:           API_CFG.openshift,
+    roles:                     API_CFG.openshift,
+    roleBindings:              API_CFG.openshift,
+    routes:                    API_CFG.openshift,
+    templates:                 API_CFG.openshift,
+    templateConfigs:           API_CFG.openshift,
+    users:                     API_CFG.openshift,
 
-    pods:                   API_CFG.k8s,
-    replicationcontrollers: API_CFG.k8s,
-    services:               API_CFG.k8s,
-    resourcequotas:         API_CFG.k8s,
-    limitranges:            API_CFG.k8s
+    pods:                      API_CFG.k8s,
+    replicationcontrollers:    API_CFG.k8s,
+    services:                  API_CFG.k8s,
+    resourcequotas:            API_CFG.k8s,
+    limitranges:               API_CFG.k8s
   };
-
+  
   DataService.prototype._urlForType = function(type, id, context, isWebsocket, params) {
     var params = params || {};
     var protocol;
@@ -628,6 +749,35 @@ angular.module('openshiftConsole')
     }
     return null;
   };
+  
+  var OBJECT_KIND_MAP = {
+    Build:                    "builds",
+    BuildConfig:              "buildConfigs",
+    DeploymentConfig:         "deploymentConfigs",
+    Image:                    "images",
+    ImageRepository:          "imageRepositories",
+    OAuthAccessToken:         "oAuthAccessTokens",
+    OAuthAuthorizeToken:      "oAuthAuthorizeTokens",
+    OAuthClient:              "oAuthClients",
+    OAuthClientAuthorization: "oAuthClientAuthorizations",
+    Policy:                   "policies",
+    PolicyBinding:            "policyBindings",
+    Project:                  "projects",
+    Role:                     "roles",
+    RoleBinding:              "roleBindings",
+    Route:                    "routes",
+    User:                     "users",
+    
+    Pod:                      "pods",
+    ReplicationController:    "replicationcontrollers",
+    Service:                  "services",
+    ResourceQuota:            "resourcequotas",
+    LimitRange:               "limitranges"
+  };
+  
+  DataService.prototype._objectType = function(kind) {
+    return OBJECT_KIND_MAP[kind];
+  }
 
   return new DataService();
 });

@@ -60,4 +60,19 @@ angular.module('openshiftConsole')
           return "http://docs.openshift.org/latest/welcome/index.html";
       }
     };
+  })
+  .filter('taskTitle', function() {
+    return function(task) {
+      if (task.status != "completed") {
+        return task.titles.started
+      } 
+      else {
+        if (task.hasErrors) {
+          return task.titles.failure    
+        }
+        else {
+          return task.titles.success
+        }
+      }
+    };
   });

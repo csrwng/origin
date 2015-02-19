@@ -1,0 +1,40 @@
+<div ng-controller="LabelsController" class="labels">
+  <h3 style="display:inline-block">Labels</h3>
+  <a href ng-click="toggleExpanded()">
+    <span ng-show="expanded" class="fa fa-caret-down btn-lg" title="Collapse"></span>
+    <span ng-hide="expanded" class="fa fa-caret-right btn-lg" title="Expand"></span>
+  </a>
+  <a href="javascript:;" data-container="body" data-toggle="popover" data-placement="right" 
+     data-trigger="focus" data-content="Labels are a way to filter objects you create in OpenShift.">
+    <i class="small pficon pficon-help"></i> About Labels
+  </a>
+  <div class="labels-edit" ng-show="expanded">
+    <form name="form">
+      <input name="key" type="text" placeholder="Label" ng-model="labelKey" label-validator required />
+      <span class="separator">:</span>
+      <input name="value" type="text" placeholder="Value" ng-model="labelValue" required />
+      <input type="submit" ng-click="addLabel()" value="Add Label" ng-disabled="form.$invalid"/>
+    </form>
+    
+    <div ng-show="labels.template">
+      <span class="key">template</span>
+      <span>:</span>
+      <span class="value">{{ labels.template }}</span>
+    </div>
+        
+    <div ng-repeat="(key,value) in labels" ng-if="key!='template'">
+      <span class="key">{{ key }}</span>
+      <span>:</span>
+      <span class="value">{{ value }}</span>
+      <a href ng-click="deleteLabel(key)" class="pficon pficon-close btn-sm" title="Delete"></a>
+    </div>
+  </div>
+  <div class="labels-readonly" ng-hide="expanded">
+    <div ng-show="labels.template">
+      <span>template = {{ labels.template }}</span>
+    </div>
+    <div ng-repeat="(key,value) in labels" ng-if="key!='template'">
+      <span>{{ key }} = {{ value }}</span>
+    </div>
+  </div>
+</div>
