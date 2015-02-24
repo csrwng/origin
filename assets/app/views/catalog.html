@@ -1,4 +1,4 @@
-<div ng-controller="CatalogController">
+<!-- div ng-controller="CatalogController">
   <h1>Components</h1>
   <section class="component-search">
     <label>Search for templates or images</label>
@@ -48,4 +48,98 @@
         </ul>
       </li>
   </section>
-</div>
+</div -->
+
+
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+       <ol class="breadcrumb">
+        <li><a href="#">Create</a></li>
+        <li>Step 2</li>
+      </ol>
+      <h1>Select a template</h1>
+      
+      </p>
+    </div><!-- /col-* -->
+  </div><!-- /row -->
+  <div class="row">
+    <div class="col-md-4">
+      <div class="tile tile-click label-tags" id="" title="">
+        <div class="tile-table">
+          <div class="tile-table-cell">
+            <span aria-hidden="true" class="font-icon logo" data-icon="&#xf121;" title="WordPress 4"></span>
+          </div>
+          <div class="tile-table-cell">
+            <h3>
+            <a href="/app/console/application_type/quickstart!12724" class="tile-target" data-toggle="modal" data-target="#myModal">WordPress 4</a>
+            <!-- TODO: make tiles clickable - current implementation -> https://github.com/openshift/origin-server/blob/master/console/app/assets/javascripts/console/unobtrusive.js.coffee#L5 -->
+            </h3>
+            <p>A brief description of the tempate goes here...</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal modal-create fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                <span class="pficon pficon-close"></span>
+              </button>
+              <h4 class="modal-title" id="myModalLabel">Modal Title</h4>
+            </div>
+            <div class="modal-body label-tags">
+              <div class="row">
+                <div class="col-xs-4 col-sm-4 col-md-4">
+                  <span class="fa fa-wordpress"></span>
+                </div>
+                <div id="component-description" class="col-xs-8 col-sm-8 col-md-8">
+                  <p>A semantic personal publishing platform written in PHP with a MySQL back end, focusing on aesthetics, web standards, and usability.  Currently using version 4.1.</p>
+                  <p>The first time you access the app you'll be asked to set a username and password and give your blog a name.  Be sure to track security updates from upstream.</p>
+                  <a href="" class="label label-default">Builder</a>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-block btn-primary">Save</button>
+            </div>
+          </div>
+        </div>
+      </div> <!-- /modal -->
+    </div><!-- /col-* -->
+    <div class="col-md-4">
+      <div class="tile tile-click label-tags" id="" title="">
+        <div class="tile-table">
+          <div class="tile-table-cell">
+            <span aria-hidden="true" class="font-icon logo" data-icon="&#xf121;" title="WordPress 4"></span>
+          </div>
+          <div class="tile-table-cell">
+            <h3>
+            <a href="/app/console/application_type/quickstart!12724" class="tile-target" data-toggle="modal" data-target="#myModal">WordPress 4</a>
+            <!-- TODO: make tiles clickable - current implementation -> https://github.com/openshift/origin-server/blob/master/console/app/assets/javascripts/console/unobtrusive.js.coffee#L5 -->
+            </h3>
+            <p>A brief description of the tempate goes here...</p>
+          </div>
+        </div>
+      </div>
+    </div><!-- /col-* -->
+    <div class="col-md-4">
+      <div class="tile tile-click label-tags" id="" title="">
+        <div class="tile-table">
+          <div class="tile-table-cell">
+            <span aria-hidden="true" class="font-icon logo" data-icon="&#xf121;" title="WordPress 4"></span>
+          </div>
+          <div class="tile-table-cell">
+            <h3>
+            <a href="/app/console/application_type/quickstart!12724" class="tile-target" data-toggle="modal" data-target="#myModal">WordPress 4</a>
+            <!-- TODO: make tiles clickable - current implementation -> https://github.com/openshift/origin-server/blob/master/console/app/assets/javascripts/console/unobtrusive.js.coffee#L5 -->
+            </h3>
+            <p>A brief description of the tempate goes here...</p>
+          </div>
+        </div>
+      </div>
+    </div><!-- /col-* -->
+  </div><!-- /row -->
+</div><!-- /container -->
