@@ -147,7 +147,6 @@
 }
 
 
-
 // Create App
 // --------------
 
@@ -221,10 +220,35 @@
   }
 }
 
-.truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+// Modals //
+.modal {
+  &.modal-create {
+    .modal-content {
+      padding: 0;
+      .modal-header {
+        background-color: transparent;
+      }
+      .modal-body {
+        .row:first-child div:not(#component-description) {
+          text-align: center;
+        }
+        .fa {
+          font-size: 80px;
+        }
+        @media (min-width:@screen-sm-min) {
+          .fa {font-size: 130px;}
+        }
+      }
+      .modal-footer {
+        .btn-block {
+          padding: 10px;
+        }
+      }
+    }
+    @media (min-width:@screen-sm-min) {
+      .modal-content {padding: 25px;}
+    }
+  }
 }
 
 
@@ -253,6 +277,12 @@
 select:invalid {
     box-shadow: none;
 }
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 
 
