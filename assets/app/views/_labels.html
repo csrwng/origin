@@ -1,40 +1,67 @@
 <div ng-controller="LabelsController" class="labels">
-  <h3 style="display:inline-block">Labels</h3>
-  <a href ng-click="toggleExpanded()">
-    <span ng-show="expanded" class="fa fa-caret-down btn-lg" title="Collapse"></span>
-    <span ng-hide="expanded" class="fa fa-caret-right btn-lg" title="Expand"></span>
-  </a>
-  <a href="javascript:;" data-container="body" data-toggle="popover" data-placement="right" 
-     data-trigger="focus" data-content="Labels are a way to filter objects you create in OpenShift.">
-    <i class="small pficon pficon-help"></i> About Labels
-  </a>
-  <div class="labels-edit" ng-show="expanded">
-    <form name="form">
-      <input name="key" type="text" placeholder="Label" ng-model="labelKey" label-validator required />
-      <span class="separator">:</span>
-      <input name="value" type="text" placeholder="Value" ng-model="labelValue" required />
-      <input type="submit" ng-click="addLabel()" value="Add Label" ng-disabled="form.$invalid"/>
-    </form>
-    
-    <div ng-show="labels.template">
-      <span class="key">template</span>
-      <span>:</span>
-      <span class="value">{{ labels.template }}</span>
+  <div class="gutter-bottom" ng-show="expanded">
+    <div class="flow">
+      <div class="flow-block">
+        <h2>Labels</h2> 
+      </div>
+      <div class="flow-block right">
+        <ul class="list-inline">
+          <li><a class="action action-inline" href ng-click="toggleExpanded()"><i class="pficon pficon-remove"></i>Collapse</a></li>
+          <li><span class="help action-inline"><i class="pficon pficon-help"></i> <a href data-toggle="tooltip" data-placement="bottom" title="Labels are a way to filter objects you create in OpenShift.">About labels</a></span></li>
+        </ul>
+      </div>
     </div>
-        
-    <div ng-repeat="(key,value) in labels" ng-if="key!='template'">
-      <span class="key">{{ key }}</span>
-      <span>:</span>
-      <span class="value">{{ value }}</span>
-      <a href ng-click="deleteLabel(key)" class="pficon pficon-close btn-sm" title="Delete"></a>
+    <div class="form-inline labels-edit">
+      <div class="edit-label">
+        <div class="form-group has-error">
+          <label class="sr-only">Label</label>
+          <input class="form-control" type="text" placeholder="Label" ng-model="labelKey">
+        </div>
+        <span class="separator">:</span>
+        <div class="form-group">
+          <label class="sr-only">Key</label>
+          <input class="form-control" type="text" placeholder="Value" ng-model="labelValue">
+        </div>
+        <button class="btn btn-default" ng-click="addLabel()">Add Label</button>
+        <div class="has-error"><!-- should have 'hidden' class by default -->
+          <span class="help-block">Cause of error and how to correct</span>
+        </div>
+      </div>
+      
+      <ul class="list-unstyled label-list">
+        <li ng-show="labels.Name">
+          <span class="key truncate">template</span>
+          <span class="value truncate">{{ labels.template }}</span>
+        </li>
+        <li ng-repeat="(key,value) in labels" ng-if="key!='Name'">    
+          <span class="key truncate">{{ key }}</span>
+          <span class="value truncate">{{ value }}</span>
+          <a class="btn btn-default btn-xs" href ng-click="deleteLabel(key)"><i class="fa fa-times"></i></a>
+        </li>
+      </ul>
     </div>
   </div>
-  <div class="labels-readonly" ng-hide="expanded">
-    <div ng-show="labels.template">
-      <span>template = {{ labels.template }}</span>
+  <div class="gutter-bottom" ng-hide="expanded">
+    <div class="flow">
+      <div class="flow-block">
+        <h2>Labels</h2>
+      </div>
+      <div class="flow-block right">
+        <ul class="list-inline">
+          <li><a class="action action-inline" href ng-click="toggleExpanded()"><i class="pficon pficon-add"></i>Add labels</a></li>
+          <li><span class="help action-inline"><i class="pficon pficon-help"></i> <a href data-toggle="tooltip" data-placement="bottom" title="Labels are a way to filter objects you create in OpenShift.">About labels</a></span></li>
+        </ul>
+      </div>
     </div>
-    <div ng-repeat="(key,value) in labels" ng-if="key!='template'">
-      <span>{{ key }} = {{ value }}</span>
-    </div>
+    <ul class="labels-readonly label-list list-unstyled">
+      <li ng-show="labels.template">
+        <span class="key truncate">template</span>
+        <span class="value truncate">{{ labels.template }}</span>
+      </li>
+      <li ng-repeat="(key,value) in labels" ng-if="key!='template'">
+        <span class="key truncate">{{ key }}</span>
+        <span class="value truncate">{{ value }}</span>
+      </li>
+    </ul>
   </div>
 </div>
