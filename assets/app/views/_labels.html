@@ -1,59 +1,47 @@
 <div ng-controller="LabelsController" class="labels">
-  <div class="gutter-bottom" ng-show="expanded">
+  <div class="gutter-bottom">
     <div class="flow">
       <div class="flow-block">
         <h2>Labels</h2> 
       </div>
       <div class="flow-block right">
         <ul class="list-inline">
-          <li><a class="action action-inline" href ng-click="toggleExpanded()"><i class="pficon pficon-remove"></i>Collapse</a></li>
+          <li><a class="action action-inline" href ng-click="toggleExpanded()" ng-show="expanded"><i class="pficon pficon-remove"></i>Collapse</a></li>
+          <li><a class="action action-inline" href ng-click="toggleExpanded()" ng-hide="expanded"><i class="pficon pficon-add"></i>Add labels</a></li>
           <li><span class="help action-inline"><i class="pficon pficon-help"></i> <a href data-toggle="tooltip" data-placement="bottom" title="Labels are a way to filter objects you create in OpenShift.">About labels</a></span></li>
         </ul>
       </div>
     </div>
-    <div class="form-inline labels-edit">
-      <div class="edit-label">
-        <div class="form-group has-error">
+    <div class="form-inline labels-edit" ng-show="expanded">
+      <form class="edit-label" name="form">
+        <div ng-class="{'form-group': true, 'has-error': form.labelkey.$error.label}">
           <label class="sr-only">Label</label>
-          <input class="form-control" type="text" placeholder="Label" ng-model="labelKey">
+          <input class="form-control" type="text" name="labelkey" placeholder="Label" ng-model="labelKey" label-validator required>
         </div>
         <span class="separator">:</span>
         <div class="form-group">
-          <label class="sr-only">Key</label>
-          <input class="form-control" type="text" placeholder="Value" ng-model="labelValue">
+          <label class="sr-only">Value</label>
+          <input class="form-control" type="text" name="labelvalue" placeholder="Value" ng-model="labelValue" required>
         </div>
-        <button class="btn btn-default" ng-click="addLabel()">Add Label</button>
-        <div class="has-error"><!-- should have 'hidden' class by default -->
-          <span class="help-block">Cause of error and how to correct</span>
+        <input type="submit" class="btn btn-default" ng-click="addLabel()" ng-enabled="form.$valid" value="Add Label">
+        <div class="has-error" ng-show="form.labelkey.$error.label">
+          <span class="help-block">Please enter a valid object label [[subdomain]/][label]</span>
         </div>
-      </div>
+      </form>
       
       <ul class="list-unstyled label-list">
-        <li ng-show="labels.Name">
+        <li ng-show="labels.template">
           <span class="key truncate">template</span>
           <span class="value truncate">{{ labels.template }}</span>
         </li>
-        <li ng-repeat="(key,value) in labels" ng-if="key!='Name'">    
+        <li ng-repeat="(key,value) in labels" ng-if="key!='template'">
           <span class="key truncate">{{ key }}</span>
           <span class="value truncate">{{ value }}</span>
           <a class="btn btn-default btn-xs" href ng-click="deleteLabel(key)"><i class="fa fa-times"></i></a>
         </li>
       </ul>
     </div>
-  </div>
-  <div class="gutter-bottom" ng-hide="expanded">
-    <div class="flow">
-      <div class="flow-block">
-        <h2>Labels</h2>
-      </div>
-      <div class="flow-block right">
-        <ul class="list-inline">
-          <li><a class="action action-inline" href ng-click="toggleExpanded()"><i class="pficon pficon-add"></i>Add labels</a></li>
-          <li><span class="help action-inline"><i class="pficon pficon-help"></i> <a href data-toggle="tooltip" data-placement="bottom" title="Labels are a way to filter objects you create in OpenShift.">About labels</a></span></li>
-        </ul>
-      </div>
-    </div>
-    <ul class="labels-readonly label-list list-unstyled">
+    <ul class="labels-readonly label-list list-unstyled" ng-hide="expanded">
       <li ng-show="labels.template">
         <span class="key truncate">template</span>
         <span class="value truncate">{{ labels.template }}</span>
@@ -62,6 +50,6 @@
         <span class="key truncate">{{ key }}</span>
         <span class="value truncate">{{ value }}</span>
       </li>
-    </ul>
+    </ul>    
   </div>
 </div>
