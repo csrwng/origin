@@ -2,42 +2,39 @@
   <div class="row">
     <div class="col-md-12">
       <div ng-controller="NewFromTemplateController" class="create-from-template">
-        <form ng-show="template">
-          <div class="row">
-            <div class="col-md-3 template-name">
-              <span class="fa fa-cubes hidden-xs hidden-sm"></span>
+        <div class="row">
+          <div class="col-md-3 template-name">
+            <span class="fa fa-cubes hidden-xs hidden-sm"></span>
+          </div>
+          <div class="col-md-7">
+            <h1><span class="fa fa-cubes visible-xs-inline visible-sm-inline"></span>{{ template.metadata.name }}</h1>
+            <div class="metadata">
+              <span ng-show="template.metadata.annotations.version">Version {{ template | annotation:'version' }}</span>
+              <span ng-show="template.metadata.annotations.provider">Provided By: {{ template | annotation:'provider' }}</span>
             </div>
-            <div class="col-md-7">
-              <h1><span class="fa fa-cubes visible-xs-inline visible-sm-inline"></span>{{ template.metadata.name }}</h1>
-              <div class="metadata">
-                <span ng-show="template.metadata.annotations.version">Version {{ template | annotation:'version' }}</span>
-                <span ng-show="template.metadata.annotations.provider">Provided By: {{ template | annotation:'provider' }}</span>
-              </div>
-              <div class="description gutter-bottom">{{ template | description }}</div>
-              <div class="source gutter-bottom" ng-show="templateUrl">
-                <h2>Source</h2><span>{{ templateUrl }}</span>
-              </div>
-              <div class="images gutter-bottom">
-                <h2>Images</h2>
-                <ul class="list-unstyled" ng-repeat="image in templateImages">
-                  <li>
-                    <i class="fa fa-cube"></i>
-                    <img ng-src="image.metadata.annotations.icon" />
-                    <span class="name">{{ image.metadata.name }}<span>
-                    <span class="version" ng-show="image.metadata.annotations.version">Version {{ image | annotation:'version' }}<span>
-                    <span class="provider" ng-show="image.metadata.annotations.provider">Provided by {{ image | annotation:'provider' }}<span>
-                  </li>
-                </ul>
-              </div>
-              <labels labels="template.labels"></labels>
-              <template-options></template-options>
-              <div class="buttons gutter-top-bottom">
-                <button class="btn btn-primary" ng-click="createFromTemplate()">Create {{ template.metadata.name }} App</button>
-                <a class="btn btn-default" href="javascript:;" back>Cancel</a>
-              </div>
+            <div class="description gutter-bottom">{{ template | description }}</div>
+            <div class="source gutter-bottom" ng-show="templateUrl">
+              <h2>Source</h2><span>{{ templateUrl }}</span>
+            </div>
+            <div class="images gutter-bottom">
+              <h2>Images</h2>
+              <ul class="list-unstyled" ng-repeat="image in templateImages">
+                <li>
+                  <i class="fa fa-cube"></i>
+                  <span class="name">{{ image.name }}<span>
+                  <span class="version" ng-show="image.metadata.annotations.version">Version {{ image | annotation:'version' }}<span>
+                  <span class="provider" ng-show="image.metadata.annotations.provider">Provided by {{ image | annotation:'provider' }}<span>
+                </li>
+              </ul>
+            </div>
+            <labels labels="template.labels"></labels>
+            <template-options></template-options>
+            <div class="buttons gutter-top-bottom">
+              <button class="btn btn-primary" ng-click="createFromTemplate()">Create {{ template.metadata.name }} App</button>
+              <a class="btn btn-default" href="javascript:;" back>Cancel</a>
             </div>
           </div>
-        </form>
+        </div>
         <div ng-hide="template">
           {{ emptyMessage }}
         </div>
