@@ -14,7 +14,7 @@ angular.module('openshiftConsole')
        $scope.expanded = !$scope.expanded
      }
      $scope.addLabel = function() {
-       if ($scope.labelKey) {
+       if ($scope.labelKey && $scope.labelValue) {
          $scope.labels[$scope.labelKey] = $scope.labelValue;
          $scope.labelKey = "";
          $scope.labelValue = "";

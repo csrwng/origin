@@ -8,7 +8,7 @@
  * Controller of the openshiftConsole
  */
 angular.module('openshiftConsole')
-  .controller('NewFromTemplateController', function ($scope, $http, $routeParams, DataService, $q, $location, TaskList) {
+  .controller('NewFromTemplateController', function ($scope, $http, $routeParams, DataService, $q, $location, TaskList, $parse) {
 
     function errorPage(message) {
       var redirect = URI('/error').query({
@@ -16,15 +16,47 @@ angular.module('openshiftConsole')
       }).toString();
       $location.url(redirect);
     }
+    
+    var dcContainers = $parse('template.controllerTemplate.podTemplate.desiredState.manifest.containers');
+    var stiBuilderImage = $parse('parameters.strategy.stiStrategy.image');
+    var outputImage = $parse('parameters.output.to.name || parameters.output.DockerImageReference');
+    
+    function deploymentConfigImages(dc) {
+      var images = [];
+      var containers = dcContainers(dc);
+      if (containers) {
+        containers.forEach(function(container) {
+          images.push(container.image);
+        });
+      }
+      return images;
+    }
 
     function imageItems(data) {
-      var images = []
+      var images = [];
+      var dcImages = [];
+      var outputImages = {};
       data.items.forEach(function(item) {
-        if (item.kind == "ImageRepository") {
-          images.push(item)
+        if (item.kind == "BuildConfig") {
+          var builder = stiBuilderImage(item)
+          if(builder) {
+            images.push({ name: builder });
+          }
+          var output = outputImage(item);
+          if (output) {
+            outputImages[output] = true;
+          }
         }
-      })
-      return images
+        if (item.kind == "DeploymentConfig") {
+          dcImages = dcImages.concat(deploymentConfigImages(item));
+        }
+      });
+      dcImages.forEach(function(image) {
+        if (!outputImages[image]) {
+          images.push({ name: image });
+        }
+      });
+      return images;
     }
     
     $scope.createFromTemplate = function() { 
@@ -119,7 +151,7 @@ angular.module('openshiftConsole')
         $scope.template = template;
         $scope.templateImages = imageItems(template);
         $scope.hasParameters = $scope.template.parameters && $scope.template.parameters.length > 0;
-        $scope.optionsExpanded = true;
+        $scope.optionsExpanded = false;
         template.labels = template.labels || {};
       },
       function(data) {
