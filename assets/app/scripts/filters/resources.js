@@ -11,6 +11,15 @@ angular.module('openshiftConsole')
     return function(resource) {
       return annotationFilter(resource, "description");
     };
+  })
+  .filter('tags', function(annotationFilter) {
+    return function(resource) {
+      var tags = annotationFilter(resource, "tags");
+      if (!tags) {
+        return [];
+      }
+      return tags.split(/\s*,\s*/);
+    };
   })  
   .filter('label', function() {
     return function(resource, key) {
@@ -31,6 +40,22 @@ angular.module('openshiftConsole')
       }
     }
   })
+  .filter('iconClass', function(annotationFilter) {
+    return function(resource, kind) {
+      var icon = annotationFilter(resource, "iconClass");
+      if (!icon) {
+        if (kind == "template") {
+          return "fa fa-bolt";
+        }
+        else {
+          return "";
+        }
+      }
+      else {
+        return icon;
+      }
+    }
+  })  
   .filter('imageName', function() {
     return function(image) {
       if (!image) {

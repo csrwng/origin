@@ -229,14 +229,18 @@
         background-color: transparent;
       }
       .modal-body {
-        .row:first-child div:not(#component-description) {
+        .template-icon {
           text-align: center;
         }
-        .fa {
+        .template-icon {
           font-size: 80px;
+          line-height: 80px;
         }
         @media (min-width:@screen-sm-min) {
-          .fa {font-size: 130px;}
+          .template-icon {
+            font-size: 130px;
+            line-height: 130px;
+          }
         }
       }
       .modal-footer {
@@ -251,6 +255,9 @@
   }
 }
 
+.label + .label {
+  margin-left: 3px;
+}
 
 // Misc
 // ------------

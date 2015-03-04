@@ -1,142 +1,29 @@
-<!-- div ng-controller="CatalogController">
-  <h1>Components</h1>
-  <section class="component-search">
-    <label>Search for templates or images</label>
-    <input ng-model="searchText" type="text" class="search" />
-  </section>
-  <section class="template-list">
-    <ul>
-      <li>
-        <templates list="myTemplates" title="'My Templates'"></templates>
-      </li>
-      <li>
-        <templates list="myOrgTemplates" title="myorgTitle + ' Templates'"></templates>
-      </li>
-        <li ng-include="views/_custom_create.html">
-      </li>
-    </ul>
-  </section>
-  <section class="template-list">
-    <ul>
-      <li>
-        <templates list="featured[0].list" title="featured[0].title"></templates>
-      </li>
-      <li>
-        <templates list="featured[1].list" title="featured[1].title"></templates>
-      </li>
-      <li>
-        <templates list="features[2].list" title="featured[2].title"></templates>
-      </li>
-    </ul>
-  </section>
-  <section class="browse">
-    <ul>
-      <li class="category-list">
-        <h3>Browse by Language</h3>
-        <ul ng-repeat="language in languages">
-          <li>
-            <a href="">{{ language }}</a>
-          </li>
-        </ul>
-      </li>
-      <li class="category-list">
-        <h3>Browse by Category</h3>
-        <ul ng-repeat="cateogry in categories">
-          <li>
-            <a href="">{{ category }}</a>
-          </li>
-        </ul>
-      </li>
-  </section>
-</div -->
-
-<div class="container">
-  <div class="row">
-    <div class="col-md-12">
-       <ol class="breadcrumb">
-        <li><a href="#">Create</a></li>
-        <li>Step 2</li>
-      </ol>
-      <h1>Select a template</h1>
-      
-      </p>
-    </div><!-- /col-* -->
-  </div><!-- /row -->
-  <div class="row">
-    <div class="col-md-4">
-      <div class="tile tile-click label-tags" id="" title="">
-        <div class="tile-table">
-          <div class="tile-table-cell">
-            <span aria-hidden="true" class="font-icon logo" data-icon="&#xf121;" title="WordPress 4"></span>
-          </div>
-          <div class="tile-table-cell">
-            <h3>
-            <a href="/app/console/application_type/quickstart!12724" class="tile-target" data-toggle="modal" data-target="#myModal">WordPress 4</a>
-            <!-- TODO: make tiles clickable - current implementation -> https://github.com/openshift/origin-server/blob/master/console/app/assets/javascripts/console/unobtrusive.js.coffee#L5 -->
-            </h3>
-            <p>A brief description of the tempate goes here...</p>
-          </div>
+<div ng-controller="ProjectController">
+  <div ng-controller="CatalogController">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <!-- TODO we don't need a breadcrumb yet
+           <ol class="breadcrumb">
+            <li><a href="#">Create</a></li>
+            <li>Step 2</li>
+          </ol> -->
+          <h1>Select a template</h1>
         </div>
       </div>
-      <div class="modal modal-create fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                <span class="pficon pficon-close"></span>
-              </button>
-              <h4 class="modal-title" id="myModalLabel">Modal Title</h4>
-            </div>
-            <div class="modal-body label-tags">
-              <div class="row">
-                <div class="col-xs-4 col-sm-4 col-md-4">
-                  <span class="fa fa-wordpress"></span>
-                </div>
-                <div id="component-description" class="col-xs-8 col-sm-8 col-md-8">
-                  <p>A semantic personal publishing platform written in PHP with a MySQL back end, focusing on aesthetics, web standards, and usability.  Currently using version 4.1.</p>
-                  <p>The first time you access the app you'll be asked to set a username and password and give your blog a name.  Be sure to track security updates from upstream.</p>
-                  <a href="" class="label label-default">Builder</a>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-block btn-primary">Save</button>
-            </div>
-          </div>
-        </div>
-      </div> <!-- /modal -->
-    </div><!-- /col-* -->
-    <div class="col-md-4">
-      <div class="tile tile-click label-tags" id="" title="">
-        <div class="tile-table">
-          <div class="tile-table-cell">
-            <span aria-hidden="true" class="font-icon logo" data-icon="&#xf121;" title="WordPress 4"></span>
-          </div>
-          <div class="tile-table-cell">
-            <h3>
-            <a href="/app/console/application_type/quickstart!12724" class="tile-target" data-toggle="modal" data-target="#myModal">WordPress 4</a>
-            <!-- TODO: make tiles clickable - current implementation -> https://github.com/openshift/origin-server/blob/master/console/app/assets/javascripts/console/unobtrusive.js.coffee#L5 -->
-            </h3>
-            <p>A brief description of the tempate goes here...</p>
-          </div>
+      <div ng-if="!templates.length">There are no templates to select from.  To add a template to your project run <code>osc create -f &lt;template_file&gt; -n {{projectName}}</code></div>
+      <div ng-if="templatesByTag['instant-app'].length">
+        <h2>Instant apps</h2>
+        <div class="row">
+          <catalog-template template="template" project="projectName" ng-repeat="template in templatesByTag['instant-app'] | orderBy : 'metadata.name'"></catalog-template>
         </div>
       </div>
-    </div><!-- /col-* -->
-    <div class="col-md-4">
-      <div class="tile tile-click label-tags" id="" title="">
-        <div class="tile-table">
-          <div class="tile-table-cell">
-            <span aria-hidden="true" class="font-icon logo" data-icon="&#xf121;" title="WordPress 4"></span>
-          </div>
-          <div class="tile-table-cell">
-            <h3>
-            <a href="/app/console/application_type/quickstart!12724" class="tile-target" data-toggle="modal" data-target="#myModal">WordPress 4</a>
-            <!-- TODO: make tiles clickable - current implementation -> https://github.com/openshift/origin-server/blob/master/console/app/assets/javascripts/console/unobtrusive.js.coffee#L5 -->
-            </h3>
-            <p>A brief description of the tempate goes here...</p>
-          </div>
+      <div ng-if="templates.length">
+        <h2>All templates</h2>
+        <div class="row">
+          <catalog-template template="template" project="projectName" ng-repeat="template in templates | orderBy : 'metadata.name'" ng-if-"(template | tags).includes('instant-app')"></catalog-template>
         </div>
       </div>
-    </div><!-- /col-* -->
-  </div><!-- /row -->
-</div><!-- /container -->
+    </div>
+  </div>
+</div>
