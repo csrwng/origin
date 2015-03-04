@@ -698,6 +698,10 @@ angular.module('openshiftConsole')
       protocol = window.location.protocol === "http:" ? "http" : "https"; 
     }
 
+    if (context.namespace && !params.namespace) {
+      params.namespace = context.namespace;
+    }
+
     var namespaceInPath = params.namespace && SERVER_TYPE_MAP[type].namespacePath;
     var namespace = null;
     if (namespaceInPath) {
