@@ -122,7 +122,7 @@ angular.module('openshiftConsole')
   .filter('parameterPlaceholder', function() {
     return function(parameter) {
       if (parameter.generate) {
-        return "(generated)"
+        return "(generated if empty)"
       } else {
         return ""
       }
