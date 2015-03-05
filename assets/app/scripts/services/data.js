@@ -319,30 +319,6 @@ angular.module('openshiftConsole')
     }
     return deferred.promise;
   };
-  
-// name:      API name, the unique name for the object 
-// namespace: API namespace
-// url:       External URL
-// context:   API context, (e.g. { project: "..."})
-// opts:      force - always request (default is false)
-//            http - options to pass to the inner $http call
-  DataService.prototype.getTemplate = function(name, namespace, url, context, opts) {
-    if (name) {
-      if (namespace) {
-        context = { 
-          projectPromise: {
-            done: function(f) {
-              f({ metadata: {name: namespace } });
-            }
-          }
-        }
-      }
-      return this.get("templates", name, context, opts);
-    }
-    else {
-      return this.create("remoteTemplates", { remoteurl: url }, context, opts);
-    }
-  };
 
 // type:      API type (e.g. "pods")
 // context:   API context (e.g. {project: "..."})
@@ -698,7 +674,7 @@ angular.module('openshiftConsole')
       protocol = window.location.protocol === "http:" ? "http" : "https"; 
     }
 
-    if (context.namespace && !params.namespace) {
+    if (context && context.namespace && !params.namespace) {
       params.namespace = context.namespace;
     }
 

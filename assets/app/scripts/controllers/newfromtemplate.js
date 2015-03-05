@@ -144,9 +144,9 @@ angular.module('openshiftConsole')
     $scope.alerts = [];
     $scope.projectPromise = $.Deferred();
     $scope.projectName = $routeParams.project
-    $scope.projectPromise.resolve({ metadata: { name: $scope.projectName }});
+    $scope.projectPromise.resolve({ metadata: { name: namespace || $scope.projectName }});
 
-    DataService.getTemplate(name, namespace, url, $scope).then(
+    DataService.get("templates", name, $scope).then(
       function(template) {
         $scope.template = template;
         $scope.templateImages = imageItems(template);
