@@ -1,19 +1,26 @@
 <div ng-controller="TasksController">
   <div ng-repeat="task in tasks()">
-    <h3>
-      <i class="fa fa-spinner fa-spin btn-lg" ng-show="task.status=='started'"></i>
-      {{ task | taskTitle }}
-      <a ng-show="task.status=='completed'" ng-click="delete(task)" style="cursor:pointer">
-        <i class="pficon pficon-close btn-sm"></i>
-      </a>
-    </h3>
-    <div if="task.helpLinks.length > 0">
-      <h4>Helpful Links</h4>
-      <ul>
-        <li ng-repeat="link in task.helpLinks">
-          <a href="{{ link.link }}" target="_blank">{{ link.title }}</a>
-        </li>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="tile tile-status">
+          <h3>
+            <i class="spinner spinner-xs spinner-inline" ng-show="task.status=='started'"></i>
+            {{ task | taskTitle }}
+            <a ng-show="task.status=='completed'" ng-click="delete(task)" style="cursor:pointer">
+              <i class="pficon pficon-close btn-sm"></i>
+            </a>
+          </h3>
+          <div if="task.helpLinks.length > 0">
+            <h4>Helpful Links</h4>
+            <ul class="list-unstyled">
+              <li ng-repeat="link in task.helpLinks">
+                <a href="{{ link.link }}" target="_blank">{{ link.title }}</a>
+              </li>
+            </ul>
+          </div>
+          <alerts alerts="task.alerts"></alerts>
+        </div>
+      </div>
     </div>
-    <alerts alerts="task.alerts"></alerts>
   </div>
 </div>
