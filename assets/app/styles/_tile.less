@@ -10,13 +10,8 @@
   word-wrap: break-word;
   width: 100%;
   .box-sizing(border-box);
-
   h1, h2, h3 {
-    margin: 0px;
-    line-height: @line-height-base;
-  }
-  a.label {
-    font-size: @font-size-small;
+    margin: (@line-height-computed / 2) 0px;
   }
   .tile-table {
     display: table;
@@ -29,21 +24,12 @@
       &:first-child {
         width:55px;
       }
-      // &:last-child {
-      //   width: 50px;
-      //   text-align: right;
-      //   span {
-      //     font-size: 13px;
-      //     cursor: help;
-      //     margin-right: 5px;
-      //     &:last-child {
-      //       margin-right: 0;
-      //     }
-      //   }
-      // }
       > p {
         margin-bottom: 5px;
         line-height: @line-height-base / 1.25;
+      }
+      &.template-icon {
+        text-align: center;
       }
     }
     .font-icon.logo, .font-icon {
@@ -52,16 +38,26 @@
       text-shadow: 0 0 4px #FFFFFF;
       opacity: .38;
       vertical-align: bottom;
-      // &[title="Quickstart"],
-      // &[title="Cartridge"] {
-      //   @include iconfont-adjust()
-      // }
     }
     + p {
       margin-top: 3px;
       font-size: inherit;
     }
   }
+}
+.tile.tile-template {
+  a.label {
+    font-size: @font-size-small;
+  }
+}
+.tile.tile-project {
+  h2 {
+    margin: 10px 0;
+  }
+}
+.tile.tile-status {
+  background-color: @status-bg-color;
+  border-top: 5px solid @status-border-color;
 }
 
 .tile-click {
