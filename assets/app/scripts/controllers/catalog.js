@@ -29,7 +29,7 @@ angular.module('openshiftConsole')
       allTemplates();
       templatesByTag();
       console.log("openshift templates", $scope.openshiftTemplates);
-    });    
+    });
 
     var allTemplates = function() {
       $scope.templates = [];
@@ -38,7 +38,7 @@ angular.module('openshiftConsole')
       });
       angular.forEach($scope.openshiftTemplates, function(template) {
         $scope.templates.push(template);
-      });      
+      });
     };
 
     var templatesByTag = function() {
@@ -56,5 +56,5 @@ angular.module('openshiftConsole')
       });
 
       console.log("templatesByTag", $scope.templatesByTag);
-    };    
+    };
   });

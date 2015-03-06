@@ -2,13 +2,13 @@
   <div class="gutter-bottom">
     <div class="flow">
       <div class="flow-block">
-        <h2>Labels</h2> 
+        <h2>Labels</h2>
       </div>
       <div class="flow-block right">
         <ul class="list-inline">
-          <li><a class="action action-inline" href ng-click="toggleExpanded()" ng-show="expanded"><i class="pficon pficon-remove"></i>Collapse</a></li>
-          <li><a class="action action-inline" href ng-click="toggleExpanded()" ng-hide="expanded"><i class="pficon pficon-add"></i>Add labels</a></li>
-          <li><span class="help action-inline"><i class="pficon pficon-help"></i> <a href data-toggle="tooltip" data-placement="bottom" title="Labels are a way to filter objects you create in OpenShift.">About labels</a></span></li>
+          <li><a class="action action-inline" href="javascript:;" ng-click="toggleExpanded()" ng-show="expanded"><i class="pficon pficon-remove"></i>Collapse</a></li>
+          <li><a class="action action-inline" href="javascript:;" ng-click="toggleExpanded()" ng-hide="expanded"><i class="pficon pficon-add"></i>Add labels</a></li>
+          <li><span class="help action-inline"><i class="pficon pficon-help"></i> <a href="javascript:;" data-toggle="tooltip" data-placement="bottom" title="Labels are used to organize, group, or select objects and resources, such as pods.">About labels</a></span></li>
         </ul>
       </div>
     </div>
@@ -25,10 +25,17 @@
         </div>
         <input type="submit" class="btn btn-default" ng-click="addLabel()" ng-enabled="form.$valid" value="Add Label">
         <div class="has-error" ng-show="form.labelkey.$error.label">
-          <span class="help-block">Please enter a valid object label [[subdomain]/][label]</span>
+          <span class="help-block">Please enter a valid object label
+            <span class="help action-inline">
+              <a  data-toggle="tooltip" data-placement="bottom"
+                title="A valid object label has the form [domain/]name where a name is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the '-' character allowed anywhere except the first or last character. A domain is a sequence of names separated by the '.' character with a maximum length of 253 characters.">
+                <i class="pficon pficon-help"></i>
+              </a>
+            </span>
+          </span>
         </div>
       </form>
-      
+
       <ul class="list-unstyled label-list">
         <li ng-show="labels.template">
           <span class="key truncate">template</span>
@@ -37,7 +44,7 @@
         <li ng-repeat="(key,value) in labels" ng-if="key!='template'">
           <span class="key truncate">{{ key }}</span>
           <span class="value truncate">{{ value }}</span>
-          <a class="btn btn-default btn-xs" href ng-click="deleteLabel(key)"><i class="fa fa-times"></i></a>
+          <a class="btn btn-default btn-xs" href="javascript:;" ng-click="deleteLabel(key)"><i class="fa fa-times"></i></a>
         </li>
       </ul>
     </div>
@@ -50,6 +57,6 @@
         <span class="key truncate">{{ key }}</span>
         <span class="value truncate">{{ value }}</span>
       </li>
-    </ul>    
+    </ul>
   </div>
 </div>

@@ -9,10 +9,10 @@
  */
 angular.module('openshiftConsole')
   .controller('LabelsController', function ($scope) {
-     $scope.expanded = true
+     $scope.expanded = true;
      $scope.toggleExpanded = function() {
-       $scope.expanded = !$scope.expanded
-     }
+       $scope.expanded = !$scope.expanded;
+     };
      $scope.addLabel = function() {
        if ($scope.labelKey && $scope.labelValue) {
          $scope.labels[$scope.labelKey] = $scope.labelValue;
@@ -21,10 +21,10 @@ angular.module('openshiftConsole')
          $scope.form.$setPristine();
          $scope.form.$setUntouched();
        }
-     }
+     };
      $scope.deleteLabel = function(key) {
        if ($scope.labels[key]) {
-         delete $scope.labels[key]
+         delete $scope.labels[key];
        }
-     }
+     };
   });

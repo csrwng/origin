@@ -1,5 +1,6 @@
+'use strict';
+
 angular.module('openshiftConsole')
-  // This triggers when an element has either a toggle or data-toggle attribute set on it
   .directive('labels', function() {
     return {
       restrict: 'E',
@@ -7,7 +8,7 @@ angular.module('openshiftConsole')
       scope: {
         labels: '='
       },
-    }
+    };
   })
   .directive('labelValidator', function() {
     return {
@@ -19,21 +20,21 @@ angular.module('openshiftConsole')
           var LABEL_MAXLENGTH = 63;
           var SUBDOMAIN_REGEXP = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/;
           var SUBDOMAIN_MAXLENGTH = 253;
-          
+
           function validateSubdomain(str) {
             if (str.length > SUBDOMAIN_MAXLENGTH) { return false; }
             return SUBDOMAIN_REGEXP.test(str);
           }
-          
+
           function validateLabel(str) {
             if (str.length > LABEL_MAXLENGTH) { return false; }
             return LABEL_REGEXP.test(str);
           }
-          
+
           if (ctrl.$isEmpty(modelValue)) {
             return true;
           }
-          parts = viewValue.split("/")
+          var parts = viewValue.split("/");
           switch(parts.length) {
             case 1:
               return validateLabel(parts[0]);
@@ -41,7 +42,7 @@ angular.module('openshiftConsole')
               return validateSubdomain(parts[0]) && validateLabel(parts[1]);
           }
           return false;
-        }
+        };
       }
-    }
+    };
   });

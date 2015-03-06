@@ -9,7 +9,7 @@ angular.module('openshiftConsole')
 
   Data.prototype.by = function(attr) {
     // TODO store already generated indices
-    if (attr == "metadata.name") {
+    if (attr === "metadata.name") {
       return this._data;
     }
     var map = {};
@@ -55,7 +55,7 @@ angular.module('openshiftConsole')
         if (!map[key]) {
           map[key] = {};
         }
-        if (action == "DELETED") {
+        if (action === "DELETED") {
           delete map[key][val];
         }
         else {
@@ -64,7 +64,7 @@ angular.module('openshiftConsole')
       }
     }
     else {
-      if (action == "DELETED") {
+      if (action === "DELETED") {
         delete map[attrValue];
       }
       else {
@@ -95,11 +95,11 @@ angular.module('openshiftConsole')
 //                    by attribute (e.g. data.by('metadata.name'))
 // opts:      options (currently none, placeholder)
   DataService.prototype.list = function(type, context, callback, opts) {
-    var callbacks = this._listCallbacks(type, context)
+    var callbacks = this._listCallbacks(type, context);
     callbacks.add(callback);
 
     if (this._watchInFlight(type, context) && this._resourceVersion(type, context)) {
-      // A watch operation is running, and we've already received the 
+      // A watch operation is running, and we've already received the
       // initial set of data for this type
       callbacks.fire(this._data(type, context));
       callbacks.empty();
@@ -113,141 +113,103 @@ angular.module('openshiftConsole')
   };
 
 // type:      API type (e.g. "pods")
-// name:      API name, the unique name for the object 
+// name:      API name, the unique name for the object
 // context:   API context (e.g. {project: "..."})
 // opts:      http - options to pass to the inner $http call
 // Returns a promise resolved with response data or rejected with {data:..., status:..., headers:..., config:...} when the delete call completes.
   DataService.prototype.delete = function(type, name, context, opts) {
-  	opts = opts || {};
-  	var deferred = $q.defer();
-    if (context.projectPromise && type !== "projects") {
-      var self = this;
-      context.projectPromise.done(function(project) {
-        $http(angular.extend({
-          method: 'DELETE',
-          url: self._urlForType(type, name, context, false, {namespace: project.metadata.name})
-        }, opts.http || {}))
-        .success(function(data, status, headerFunc, config, statusText) {
-          deferred.resolve(data);
-        })
-        .error(function(data, status, headers, config) {
-          deferred.reject({
-            data: data,
-            status: status,
-            headers: headers,
-            config: config
-          });
-        });
-      });
-    }
-    else {
+    opts = opts || {};
+    var deferred = $q.defer();
+    var self = this;
+  this._getNamespace(type, context, opts).then(function(ns){
       $http(angular.extend({
         method: 'DELETE',
-        url: this._urlForType(type, name, context)
+        url: self._urlForType(type, name, context, false, ns)
       }, opts.http || {}))
       .success(function(data, status, headerFunc, config, statusText) {
         deferred.resolve(data);
       })
       .error(function(data, status, headers, config) {
         deferred.reject({
-          data: data, 
-          status: status, 
-          headers: headers, 
+          data: data,
+          status: status,
+          headers: headers,
           config: config
         });
       });
-    }
-  	return deferred.promise;
+    });
+    return deferred.promise;
   };
-  
+
 // type:      API type (e.g. "pods")
 // object:    API object data(eg. { kind: "Build", parameters: { ... } } )
 // context:   API context (e.g. {project: "..."})
 // opts:      http - options to pass to the inner $http call
 // Returns a promise resolved with response data or rejected with {data:..., status:..., headers:..., config:...} when the delete call completes.
   DataService.prototype.create = function(type, object, context, opts) {
-  	opts = opts || {};
-  	var deferred = $q.defer();
-    if (context.projectPromise && type !== "projects") {
-      var self = this;
-      context.projectPromise.done(function(project) {
-        $http(angular.extend({
-          method: 'POST',
-          data: object,
-          url: self._urlForType(type, null, context, false, {namespace: project.metadata.name})
-        }, opts.http || {}))
-        .success(function(data, status, headerFunc, config, statusText) {
-          deferred.resolve(data);
-        })
-        .error(function(data, status, headers, config) {
-          deferred.reject({
-            data: data,
-            status: status,
-            headers: headers,
-            config: config
-          });
-        });
-      });
-    }
-    else {
+    opts = opts || {};
+    var deferred = $q.defer();
+    var self = this;
+    this._getNamespace(type, context, opts).then(function(ns){
       $http(angular.extend({
         method: 'POST',
         data: object,
-        url: this._urlForType(type, null, context)
+        url: self._urlForType(type, null, context, false, ns)
       }, opts.http || {}))
       .success(function(data, status, headerFunc, config, statusText) {
         deferred.resolve(data);
       })
       .error(function(data, status, headers, config) {
         deferred.reject({
-          data: data, 
-          status: status, 
-          headers: headers, 
+          data: data,
+          status: status,
+          headers: headers,
           config: config
         });
       });
-    }
-  	return deferred.promise;
+    });
+    return deferred.promise;
   };
-  
+
 
   // objects:   Array of API object data(eg. [{ kind: "Build", parameters: { ... } }] )
   // context:   API context (e.g. {project: "..."})
   // opts:      http - options to pass to the inner $http call
-  // Returns a promise resolved with an an object like: { success: {}, failure: {} }
-  // where success and failure contain an array of 
+  // Returns a promise resolved with an an object like: { success: [], failure: [] }
+  // where success and failure contain an array of results from the individual
+  // create calls.
   DataService.prototype.createList = function(objects, context, opts) {
     var result = $q.defer();
-    var success_results = []
-    var failure_results = []
+    var successResults = [];
+    var failureResults = [];
     var self = this;
-    var remaining = objects.length
-    
+    var remaining = objects.length;
+
     function _checkDone() {
-      if (remaining == 0) {
-        result.resolve({ success: success_results, failure: failure_results })
+      if (remaining === 0) {
+        result.resolve({ success: successResults, failure: failureResults });
       }
     }
-    
+
     objects.forEach(function(object) {
       self.create(self._objectType(object.kind), object, context, opts).then(
         function (data) {
-          success_results.push(data);
+          successResults.push(data);
           remaining--;
           _checkDone();
         },
         function (data) {
-          failure_results.push(data);
+          failureResults.push(data);
           remaining--;
           _checkDone();
         }
       );
     });
     return result.promise;
-  }
+  };
 
 // type:      API type (e.g. "pods")
-// name:      API name, the unique name for the object 
+// name:      API name, the unique name for the object
 // context:   API context (e.g. {project: "..."})
 // opts:      force - always request (default is false)
 //            http - options to pass to the inner $http call
@@ -270,52 +232,33 @@ angular.module('openshiftConsole')
         $rootScope.$apply(function(){
           // simulation of API object not found
           deferred.reject({
-          	data: {}, 
-          	status: 404, 
-          	headers: function() { return null }, 
-          	config: {}
+            data: {},
+            status: 404,
+            headers: function() { return null; },
+            config: {}
           });
         });
       }
     }
     else {
-      if (context.projectPromise && type !== "projects") {
-        var self = this;
-        context.projectPromise.done(function(project) {
-          $http(angular.extend({
-            method: 'GET',
-            url: self._urlForType(type, name, context, false, {namespace: project.metadata.name})
-          }, opts.http || {}))
-          .success(function(data, status, headerFunc, config, statusText) {
-            deferred.resolve(data);
-          })
-          .error(function(data, status, headers, config) {
-            deferred.reject({
-              data: data,
-              status: status,
-              headers: headers,
-              config: config
-            });
-          });
-        });
-      }
-      else {
+      var self = this;
+      this._getNamespace(type, context, opts).then(function(ns){
         $http(angular.extend({
           method: 'GET',
-          url: this._urlForType(type, name, context)
+          url: self._urlForType(type, name, context, false, ns)
         }, opts.http || {}))
         .success(function(data, status, headerFunc, config, statusText) {
           deferred.resolve(data);
         })
         .error(function(data, status, headers, config) {
           deferred.reject({
-            data: data, 
-            status: status, 
-            headers: headers, 
+            data: data,
+            status: status,
+            headers: headers,
             config: config
           });
         });
-      }
+      });
     }
     return deferred.promise;
   };
@@ -328,12 +271,12 @@ angular.module('openshiftConsole')
 //                    which includes a helper method for returning a map indexed
 //                    by attribute (e.g. data.by('metadata.name'))
 //            event:  specific event that caused this call ("ADDED", "MODIFIED",
-//                    "DELETED", or null) callbacks can optionally use this to 
+//                    "DELETED", or null) callbacks can optionally use this to
 //                    more efficiently process updates
 //            obj:    specific object that caused this call (may be null if the
-//                    entire list was updated) callbacks can optionally use this 
+//                    entire list was updated) callbacks can optionally use this
 //                    to more efficiently process updates
-// opts:      options 
+// opts:      options
 //            poll:   true | false - whether to poll the server instead of opening
 //                    a websocket. Default is false.
 //            pollInterval: in milliseconds, how long to wait between polling the server
@@ -354,7 +297,7 @@ angular.module('openshiftConsole')
       }
     }
     else {
-      this._watchOptions(type, context, opts);      
+      this._watchOptions(type, context, opts);
     }
 
     if (this._watchInFlight(type, context) && this._resourceVersion(type, context)) {
@@ -392,7 +335,7 @@ angular.module('openshiftConsole')
         this._watchWebsockets(type, context).close();
         this._watchWebsockets(type, context, null);
       }
-      
+
       this._watchInFlight(type, context, false);
       this._watchOptions(type, context, null);
     }
@@ -402,7 +345,7 @@ angular.module('openshiftConsole')
   DataService.prototype.unwatchAll = function(handles) {
     for (var i = 0; i < handles.length; i++) {
       this.unwatch(handles[i]);
-    }    
+    }
   };
 
   DataService.prototype._watchCallbacks = function(type, context) {
@@ -460,7 +403,7 @@ angular.module('openshiftConsole')
     else {
       this._dataMap[key] = new Data(data);
     }
-  }; 
+  };
 
   DataService.prototype._watchOptions = function(type, context, opts) {
     var key = this._uniqueKeyForTypeContext(type, context);
@@ -470,7 +413,7 @@ angular.module('openshiftConsole')
     else {
       this._watchOptionsMap[key] = opts;
     }
-  }; 
+  };
 
   DataService.prototype._watchPollTimeouts = function(type, context, timeout) {
     var key = this._uniqueKeyForTypeContext(type, context);
@@ -480,7 +423,7 @@ angular.module('openshiftConsole')
     else {
       this._watchPollTimeoutsMap[key] = timeout;
     }
-  }; 
+  };
 
   DataService.prototype._watchWebsockets = function(type, context, timeout) {
     var key = this._uniqueKeyForTypeContext(type, context);
@@ -490,7 +433,7 @@ angular.module('openshiftConsole')
     else {
       this._watchWebsocketsMap[key] = timeout;
     }
-  };     
+  };
 
   DataService.prototype._uniqueKeyForTypeContext = function(type, context) {
     // Note: when we start handling selecting multiple projects this
@@ -527,7 +470,7 @@ angular.module('openshiftConsole')
     this._resourceVersion(type, context, data.resourceVersion || data.metadata.resourceVersion);
     this._data(type, context, data.items);
     this._listCallbacks(type, context).fire(this._data(type, context));
-    this._listCallbacks(type, context).empty();    
+    this._listCallbacks(type, context).empty();
     this._watchCallbacks(type, context).fire(this._data(type, context));
 
     // mark list op as complete
@@ -602,7 +545,7 @@ angular.module('openshiftConsole')
     }
     catch (e) {
       // TODO report the JSON parsing exception
-    }    
+    }
   };
 
   DataService.prototype._watchOpOnClose = function(type, context, event) {
@@ -620,7 +563,7 @@ angular.module('openshiftConsole')
   var URL_GET_OBJECT = URL_ROOT_TEMPLATE + "{type}/{id}{?q*}";
   var URL_NAMESPACED_WATCH_LIST = URL_ROOT_TEMPLATE + "watch/namespaces/{namespace}/{type}{?q*}";
   var URL_NAMESPACED_GET_LIST = URL_ROOT_TEMPLATE + "namespaces/{namespace}/{type}{?q*}";
-  var URL_NAMESPACED_GET_OBJECT = URL_ROOT_TEMPLATE + "namespaces/{namespace}/{type}/{id}{?q*}";  
+  var URL_NAMESPACED_GET_OBJECT = URL_ROOT_TEMPLATE + "namespaces/{namespace}/{type}/{id}{?q*}";
   // TODO is there a better way to get this template instead of building it, introspection?
   var BUILD_HOOKS_URL = URL_ROOT_TEMPLATE + "{type}/{id}/{secret}/{hookType}{?q*}";
 
@@ -631,7 +574,7 @@ angular.module('openshiftConsole')
   // Set whether namespace is a path or query parameter
   API_CFG.openshift.namespacePath = false;
   API_CFG.k8s.namespacePath = true;
-  
+
   // TODO this is not the ideal, issue open to discuss adding
   // an introspection endpoint that would give us this mapping
   // https://github.com/openshift/origin/issues/230
@@ -649,7 +592,6 @@ angular.module('openshiftConsole')
     policies:                  API_CFG.openshift,
     policyBindings:            API_CFG.openshift,
     projects:                  API_CFG.openshift,
-    remoteTemplates:           API_CFG.openshift,
     roles:                     API_CFG.openshift,
     roleBindings:              API_CFG.openshift,
     routes:                    API_CFG.openshift,
@@ -663,15 +605,15 @@ angular.module('openshiftConsole')
     resourcequotas:            API_CFG.k8s,
     limitranges:               API_CFG.k8s
   };
-  
+
   DataService.prototype._urlForType = function(type, id, context, isWebsocket, params) {
-    var params = params || {};
     var protocol;
+    params = params || {};
     if (isWebsocket) {
       protocol = window.location.protocol === "http:" ? "ws" : "wss";
     }
     else {
-      protocol = window.location.protocol === "http:" ? "http" : "https"; 
+      protocol = window.location.protocol === "http:" ? "http" : "https";
     }
 
     if (context && context.namespace && !params.namespace) {
@@ -699,7 +641,7 @@ angular.module('openshiftConsole')
       template = namespaceInPath ? URL_NAMESPACED_WATCH_LIST : URL_WATCH_LIST;
     }
     else if (id) {
-      if (type == "buildConfigHooks") {
+      if (type === "buildConfigHooks") {
         templateOptions.secret = params.secret;
         templateOptions.hookType = params.hookType;
         params = angular.copy(params);
@@ -729,7 +671,7 @@ angular.module('openshiftConsole')
     }
     return null;
   };
-  
+
   var OBJECT_KIND_MAP = {
     Build:                    "builds",
     BuildConfig:              "buildConfigs",
@@ -747,17 +689,33 @@ angular.module('openshiftConsole')
     RoleBinding:              "roleBindings",
     Route:                    "routes",
     User:                     "users",
-    
+
     Pod:                      "pods",
     ReplicationController:    "replicationcontrollers",
     Service:                  "services",
     ResourceQuota:            "resourcequotas",
     LimitRange:               "limitranges"
   };
-  
+
   DataService.prototype._objectType = function(kind) {
     return OBJECT_KIND_MAP[kind];
-  }
+  };
+
+  DataService.prototype._getNamespace = function(type, context, opts) {
+    var deferred = $q.defer();
+    if (opts.namespace) {
+      deferred.resolve({namespace: opts.namespace});
+    }
+    else if (context.projectPromise && type !== "projects") {
+      context.projectPromise.done(function(project) {
+        deferred.resolve({namespace: project.metadata.name});
+      });
+    }
+    else {
+      deferred.resolve(null);
+    }
+    return deferred.promise;
+  };
 
   return new DataService();
 });

@@ -9,8 +9,8 @@
           <div class="col-md-7">
             <h1><span class="fa fa-cubes visible-xs-inline visible-sm-inline"></span>{{ template.metadata.name }}</h1>
             <div class="metadata">
-              <span ng-show="template.metadata.annotations.version">Version {{ template | annotation:'version' }}</span>
-              <span ng-show="template.metadata.annotations.provider">Provided By: {{ template | annotation:'provider' }}</span>
+              <span ng-if="template | annotation: 'version'">Version {{ template | annotation:'version' }}</span>
+              <span ng-if="template | provider">Provided By: {{ template | provider }}</span>
             </div>
             <div class="description gutter-bottom">{{ template | description }}</div>
             <div class="source gutter-bottom" ng-show="templateUrl">
@@ -21,16 +21,17 @@
               <ul class="list-unstyled" ng-repeat="image in templateImages">
                 <li>
                   <i class="fa fa-cube"></i>
-                  <span class="name">{{ image.name }}<span>
-                  <span class="version" ng-show="image.metadata.annotations.version">Version {{ image | annotation:'version' }}<span>
-                  <span class="provider" ng-show="image.metadata.annotations.provider">Provided by {{ image | annotation:'provider' }}<span>
+                  <span class="name">{{ image.name }}</span>
                 </li>
               </ul>
             </div>
             <labels labels="template.labels"></labels>
             <template-options></template-options>
+            <div class="project gutter-bottom">
+            Items will be created in the <b>{{ projectDisplayName() }}</b> project.
+            </div>
             <div class="buttons gutter-top-bottom">
-              <button class="btn btn-primary" ng-click="createFromTemplate()">Create in {{ projectName }}</button>
+              <button class="btn btn-primary" ng-click="createFromTemplate()">Create</button>
               <a class="btn btn-default" href="javascript:;" back>Cancel</a>
             </div>
           </div>
@@ -38,7 +39,7 @@
         <div ng-hide="template">
           {{ emptyMessage }}
         </div>
-      </div></!-- /create-from-template -->
+      </div><!-- /create-from-template -->
     </div>
   </div>
 </div>
