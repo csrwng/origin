@@ -48,6 +48,8 @@ func setBuildDuration(build *api.Build) {
 		dummy := unversioned.Now()
 		completionTimestamp = &dummy
 		build.Status.Duration = completionTimestamp.Rfc3339Copy().Time.Sub(build.Status.StartTimestamp.Rfc3339Copy().Time)
+	} else {
+		build.Status.Duration = completionTimestamp.Rfc3339Copy().Time.Sub(build.Status.StartTimestamp.Rfc3339Copy().Time)
 	}
 }
 
