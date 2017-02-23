@@ -34,6 +34,7 @@ const (
 	serverUpTimeout        = 35
 	serverConfigPath       = "/var/lib/origin/openshift.local.config"
 	serverMasterConfig     = serverConfigPath + "/master/master-config.yaml"
+	serverNodeConfig       = serverConfigPath + "/node-localhost/node-config.yaml"
 	DefaultDNSPort         = 53
 	AlternateDNSPort       = 8053
 	cmdDetermineNodeHost   = "for name in %s; do ls /var/lib/origin/openshift.local.config/node-$name &> /dev/null && echo $name && break; done"
@@ -54,6 +55,19 @@ var (
 	PortsWithAlternateDNS = append(BasePorts, AlternateDNSPort)
 	AllPorts              = append(append(RouterPorts, DefaultPorts...), AlternateDNSPort)
 	SocatPidFile          = filepath.Join(homedir.HomeDir(), cliconfig.OpenShiftConfigHomeDir, "socat-8443.pid")
+	defaultCertHosts      = []string{
+		"127.0.0.1",
+		"172.30.0.1",
+		"localhost",
+		"kubernetes",
+		"kubernetes.default",
+		"kubernetes.default.svc",
+		"kubernetes.default.svc.cluster.local",
+		"openshift",
+		"openshift.default",
+		"openshift.default.svc",
+		"openshift.default.svc.cluster.local",
+	}
 )
 
 // Helper contains methods and utilities to help with OpenShift startup
@@ -73,7 +87,7 @@ type Helper struct {
 // StartOptions represent the parameters sent to the start command
 type StartOptions struct {
 	ServerIP                 string
-	RouterIP                 string
+	AdditionalIPs            []string
 	RoutingSuffix            string
 	DNSPort                  int
 	UseSharedVolume          bool
@@ -273,48 +287,63 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 	}
 	skipCreateConfig := false
 	if opt.UseExistingConfig {
+		masterConfigExists := false
+		nodeConfigExists := false
 		var err error
 		configDir, err = h.copyConfig()
 		if err == nil {
 			_, err = os.Stat(filepath.Join(configDir, "master", "master-config.yaml"))
 			if err == nil {
-				skipCreateConfig = true
+				masterConfigExists = true
 			}
+			_, err = os.Stat(filepath.Join(configDir, "node-localhost", "node-config.yaml"))
+			if err == nil {
+				nodeConfigExists = true
+			}
+		}
+		if masterConfigExists && nodeConfigExists {
+			skipCreateConfig = true
 		}
 	}
 
 	// Create configuration if needed
-	var nodeHost string
 	if !skipCreateConfig {
 		fmt.Fprintf(out, "Creating initial OpenShift configuration\n")
+		certHosts := append(defaultCertHosts, opt.AdditionalIPs...)
+		if len(h.publicHost) > 0 {
+			certHosts = append(certHosts, h.publicHost)
+		}
+		createCertsCmd := []string{
+			"admin", "ca", "create-master-certs",
+			"--cert-dir=/var/lib/origin/openshift.local.config/master",
+			"--master=127.0.0.1",
+			fmt.Sprintf("--hostnames=%s", strings.Join(certHosts, ",")),
+		}
+		if len(h.publicHost) > 0 {
+			createCertsCmd = append(createCertsCmd, fmt.Sprintf("--public-master=https://%s:8443", h.publicHost))
+		}
+		_, err := h.runHelper.New().Image(h.image).
+			Privileged().
+			DiscardContainer().
+			HostNetwork().
+			HostPid().
+			Bind(binds...).
+			Env(env...).
+			Command(createCertsCmd...).Run()
+
 		createConfigCmd := []string{
 			"start",
 			fmt.Sprintf("--images=%s", opt.Images),
 			fmt.Sprintf("--volume-dir=%s", opt.HostVolumesDir),
 			fmt.Sprintf("--dns=0.0.0.0:%d", opt.DNSPort),
 			"--write-config=/var/lib/origin/openshift.local.config",
+			"--master=127.0.0.1",
+			"--hostname=localhost",
 		}
-		if opt.PortForwarding {
-			internalIP, err := h.ServerIP()
-			if err != nil {
-				return "", err
-			}
-			nodeHost = internalIP
-			createConfigCmd = append(createConfigCmd, fmt.Sprintf("--master=%s", internalIP))
-			publicHost := h.publicHost
-			if len(publicHost) == 0 {
-				publicHost = opt.ServerIP
-			}
-			createConfigCmd = append(createConfigCmd, fmt.Sprintf("--public-master=https://%s:8443", publicHost))
-		} else {
-			nodeHost = opt.ServerIP
-			createConfigCmd = append(createConfigCmd, fmt.Sprintf("--master=%s", opt.ServerIP))
-			if len(h.publicHost) > 0 {
-				createConfigCmd = append(createConfigCmd, fmt.Sprintf("--public-master=https://%s:8443", h.publicHost))
-			}
+		if len(h.publicHost) > 0 {
+			createConfigCmd = append(createConfigCmd, fmt.Sprintf("--public-master=https://%s:8443", h.publicHost))
 		}
-		createConfigCmd = append(createConfigCmd, fmt.Sprintf("--hostname=%s", nodeHost))
-		_, err := h.runHelper.New().Image(h.image).
+		_, err = h.runHelper.New().Image(h.image).
 			Privileged().
 			DiscardContainer().
 			HostNetwork().
@@ -334,44 +363,19 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 			return "", errors.NewError("could not update OpenShift configuration").WithCause(err)
 		}
 	}
-	if nodeHost == "" {
-		if opt.PortForwarding {
-			var err error
-			nodeHost, err = h.ServerIP()
-			if err != nil {
-				return "", err
-			}
-		} else {
-			var err error
-			hostName, err := h.hostHelper.Hostname()
-			if err != nil {
-				return "", err
-			}
-			nodeHost, err = h.DetermineNodeHost(opt.HostConfigDir, opt.ServerIP, hostName)
-			if err != nil {
-				return "", err
-			}
-		}
-	}
-	masterConfig, nodeConfig, err := h.getOpenShiftConfigFiles(nodeHost)
-	if err != nil {
-		cleanupConfig()
-		return "", errors.NewError("could not get OpenShift configuration file paths").WithCause(err)
-	}
-
 	fmt.Fprintf(out, "Starting OpenShift using container '%s'\n", h.containerName)
 	startCmd := []string{
 		"start",
-		fmt.Sprintf("--master-config=%s", masterConfig),
-		fmt.Sprintf("--node-config=%s", nodeConfig),
+		"--master-config=%s",
+		fmt.Sprintf("--master-config=%s", serverMasterConfig),
+		fmt.Sprintf("--node-config=%s", serverNodeConfig),
 	}
 	if opt.LogLevel > 0 {
 		startCmd = append(startCmd, fmt.Sprintf("--loglevel=%d", opt.LogLevel))
 	}
 
 	if opt.PortForwarding {
-		err = h.startSocatTunnel()
-		if err != nil {
+		if err := h.startSocatTunnel(opt.ServerIP); err != nil {
 			return "", err
 		}
 	}
@@ -383,7 +387,7 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 		binds = append(binds, fmt.Sprintf("%[1]s:%[1]s", opt.HostPersistentVolumesDir))
 		env = append(env, fmt.Sprintf("OPENSHIFT_PV_DIR=%s", opt.HostPersistentVolumesDir))
 	}
-	_, err = h.runHelper.New().Image(h.image).
+	_, err := h.runHelper.New().Image(h.image).
 		Name(h.containerName).
 		Privileged().
 		HostNetwork().
@@ -420,7 +424,7 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 	for {
 		resp, ierr := client.Get(h.healthzReadyURL(opt.ServerIP))
 		if ierr != nil {
-			return "", errors.NewError("cannot access master readiness URL %s", h.healthzReadyURL(opt.ServerIP)).WithCause(err).WithDetails(h.OriginLog())
+			return "", errors.NewError("cannot access master readiness URL %s", h.healthzReadyURL(opt.ServerIP)).WithCause(ierr).WithDetails(h.OriginLog())
 		}
 		if resp.StatusCode == http.StatusOK {
 			break
@@ -554,6 +558,17 @@ func (h *Helper) copyConfig() (string, error) {
 	return tempDir, nil
 }
 
+func (h *Helper) GetNodeConfigFromLocalDir(configDir string) (*configapi.NodeConfig, string, error) {
+	configPath := filepath.Join(configDir, "node-localhost", "node-config.yaml")
+	glog.V(1).Infof("Reading node config from %s", configPath)
+	cfg, err := configapilatest.ReadNodeConfig(configPath)
+	if err != nil {
+		glog.V(1).Infof("Could not read node config: %v", err)
+		return nil, "", err
+	}
+	return cfg, configPath, nil
+}
+
 func (h *Helper) GetConfigFromLocalDir(configDir string) (*configapi.MasterConfig, string, error) {
 	configPath := filepath.Join(configDir, "master", "master-config.yaml")
 	glog.V(1).Infof("Reading master config from %s", configPath)
@@ -593,7 +608,7 @@ func (h *Helper) updateConfig(configDir string, opt *StartOptions) error {
 	if len(opt.RoutingSuffix) > 0 {
 		cfg.RoutingConfig.Subdomain = opt.RoutingSuffix
 	} else {
-		cfg.RoutingConfig.Subdomain = fmt.Sprintf("%s.xip.io", opt.RouterIP)
+		cfg.RoutingConfig.Subdomain = fmt.Sprintf("%s.xip.io", opt.ServerIP)
 	}
 
 	if len(opt.MetricsHost) > 0 && cfg.AssetConfig != nil {
@@ -651,13 +666,25 @@ func (h *Helper) updateConfig(configDir string, opt *StartOptions) error {
 	if err != nil {
 		return err
 	}
-	return h.hostHelper.UploadFileToContainer(configPath, serverMasterConfig)
-}
-
-func (h *Helper) getOpenShiftConfigFiles(hostname string) (string, string, error) {
-	return serverMasterConfig,
-		fmt.Sprintf("/var/lib/origin/openshift.local.config/node-%s/node-config.yaml", hostname),
-		nil
+	err = h.hostHelper.UploadFileToContainer(configPath, serverMasterConfig)
+	if err != nil {
+		return err
+	}
+	nodeCfg, nodeConfigPath, err := h.GetNodeConfigFromLocalDir(configDir)
+	if err != nil {
+		return err
+	}
+	nodeCfg.DNSBindAddress = "127.0.0.1:53"
+	nodeCfg.DNSIP = "172.30.0.1"
+	cfgBytes, err = configapilatest.WriteYAML(nodeCfg)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(nodeConfigPath, cfgBytes, 0644)
+	if err != nil {
+		return err
+	}
+	return h.hostHelper.UploadFileToContainer(nodeConfigPath, serverNodeConfig)
 }
 
 func checkPortsInUse(data string, ports []int) error {
