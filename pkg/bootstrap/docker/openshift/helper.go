@@ -309,28 +309,10 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 	// Create configuration if needed
 	if !skipCreateConfig {
 		fmt.Fprintf(out, "Creating initial OpenShift configuration\n")
-		certHosts := append(defaultCertHosts, opt.AdditionalIPs...)
-		if len(h.publicHost) > 0 {
-			certHosts = append(certHosts, h.publicHost)
+		publicHost := h.publicHost
+		if len(publicHost) == 0 {
+			publicHost = opt.ServerIP
 		}
-		createCertsCmd := []string{
-			"admin", "ca", "create-master-certs",
-			"--cert-dir=/var/lib/origin/openshift.local.config/master",
-			"--master=127.0.0.1",
-			fmt.Sprintf("--hostnames=%s", strings.Join(certHosts, ",")),
-		}
-		if len(h.publicHost) > 0 {
-			createCertsCmd = append(createCertsCmd, fmt.Sprintf("--public-master=https://%s:8443", h.publicHost))
-		}
-		_, err := h.runHelper.New().Image(h.image).
-			Privileged().
-			DiscardContainer().
-			HostNetwork().
-			HostPid().
-			Bind(binds...).
-			Env(env...).
-			Command(createCertsCmd...).Run()
-
 		createConfigCmd := []string{
 			"start",
 			fmt.Sprintf("--images=%s", opt.Images),
@@ -339,11 +321,9 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 			"--write-config=/var/lib/origin/openshift.local.config",
 			"--master=127.0.0.1",
 			"--hostname=localhost",
+			fmt.Sprintf("--public-master=https://%s:8443", publicHost),
 		}
-		if len(h.publicHost) > 0 {
-			createConfigCmd = append(createConfigCmd, fmt.Sprintf("--public-master=https://%s:8443", h.publicHost))
-		}
-		_, err = h.runHelper.New().Image(h.image).
+		_, err := h.runHelper.New().Image(h.image).
 			Privileged().
 			DiscardContainer().
 			HostNetwork().
@@ -411,7 +391,7 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 	}
 
 	// Wait until the API server is listening
-	fmt.Fprintf(out, "Waiting for API server to start listening\n")
+	fmt.Fprintf(out, "Waiting for API server to start listening (%s)\n", opt.ServerIP)
 	masterHost := fmt.Sprintf("%s:8443", opt.ServerIP)
 	if err = cmdutil.WaitForSuccessfulDial(true, "tcp", masterHost, 200*time.Millisecond, 1*time.Second, serverUpTimeout); err != nil {
 		return "", errors.NewError("timed out waiting for OpenShift container %q \nWARNING: %s:8443 may be blocked by firewall rules", h.containerName, opt.ServerIP).WithSolution("Ensure that you can access %s from your machine", masterHost).WithDetails(h.OriginLog())

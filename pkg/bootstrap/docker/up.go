@@ -1006,9 +1006,7 @@ func (c *ClientStartConfig) Factory() (*clientcmd.Factory, error) {
 			return nil, err
 		}
 		overrides := &kclientcmd.ConfigOverrides{}
-		if c.PortForwarding {
-			overrides.ClusterInfo.Server = fmt.Sprintf("https://%s:8443", c.ServerIP)
-		}
+		overrides.ClusterInfo.Server = fmt.Sprintf("https://%s:8443", c.ServerIP)
 		defaultCfg := kclientcmd.NewDefaultClientConfig(*cfg, overrides)
 		c.factory = clientcmd.NewFactory(defaultCfg)
 	}
