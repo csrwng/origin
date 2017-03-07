@@ -808,6 +808,13 @@ func (c *ClientStartConfig) StartOpenShift(out io.Writer) error {
 	if err != nil {
 		return err
 	}
+
+	// Remove any duplicate nodes
+	err = c.OpenShiftHelper().CheckNodes(kClient)
+	if err != nil {
+		return err
+	}
+
 	err = c.OpenShiftHelper().SetupPersistentStorage(osClient, kClient, c.HostPersistentVolumesDir)
 	if err != nil {
 		return err

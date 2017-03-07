@@ -27,14 +27,16 @@ import (
 	_ "github.com/openshift/origin/pkg/cmd/server/api/install"
 	configapilatest "github.com/openshift/origin/pkg/cmd/server/api/latest"
 	cmdutil "github.com/openshift/origin/pkg/cmd/util"
+	kclientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 )
 
 const (
+	defaultNodeName        = "localhost"
 	initialStatusCheckWait = 4 * time.Second
 	serverUpTimeout        = 35
 	serverConfigPath       = "/var/lib/origin/openshift.local.config"
 	serverMasterConfig     = serverConfigPath + "/master/master-config.yaml"
-	serverNodeConfig       = serverConfigPath + "/node-localhost/node-config.yaml"
+	serverNodeConfig       = serverConfigPath + "/node-" + defaultNodeName + "/node-config.yaml"
 	DefaultDNSPort         = 53
 	AlternateDNSPort       = 8053
 	cmdDetermineNodeHost   = "for name in %s; do ls /var/lib/origin/openshift.local.config/node-$name &> /dev/null && echo $name && break; done"
@@ -296,7 +298,7 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 			if err == nil {
 				masterConfigExists = true
 			}
-			_, err = os.Stat(filepath.Join(configDir, "node-localhost", "node-config.yaml"))
+			_, err = os.Stat(filepath.Join(configDir, "node-"+defaultNodeName, "node-config.yaml"))
 			if err == nil {
 				nodeConfigExists = true
 			}
@@ -320,7 +322,7 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 			fmt.Sprintf("--dns=0.0.0.0:%d", opt.DNSPort),
 			"--write-config=/var/lib/origin/openshift.local.config",
 			"--master=127.0.0.1",
-			"--hostname=localhost",
+			fmt.Sprintf("--hostname=%s", defaultNodeName),
 			fmt.Sprintf("--public-master=https://%s:8443", publicHost),
 		}
 		_, err := h.runHelper.New().Image(h.image).
@@ -423,6 +425,46 @@ func (h *Helper) Start(opt *StartOptions, out io.Writer) (string, error) {
 	}
 	fmt.Fprintf(out, "OpenShift server started\n")
 	return configDir, nil
+}
+
+// CheckNodes determines if there is more than one node that corresponds to the
+// current machine and removes the one that doesn't match the default node name
+func (h *Helper) CheckNodes(kclient kclientset.Interface) error {
+	nodes, err := kclient.Core().Nodes().List(kapi.ListOptions{})
+	if err != nil {
+		return err
+	}
+	if len(nodes.Items) > 1 {
+		glog.V(1).Infof("Found more than one node, will attempt to remove duplicate nodes")
+		nodesToRemove := []string{}
+
+		// First, find default node
+		defaultNodeMachineId := ""
+		for i := 0; i < len(nodes.Items); i++ {
+			if nodes.Items[i].Name == defaultNodeName {
+				defaultNodeMachineId = nodes.Items[i].Status.NodeInfo.MachineID
+				glog.V(5).Infof("machine id for default node is: %s", defaultNodeMachineId)
+				break
+			}
+		}
+
+		for i := 0; i < len(nodes.Items); i++ {
+			if nodes.Items[i].Name != defaultNodeName &&
+				nodes.Items[i].Status.NodeInfo.MachineID == defaultNodeMachineId {
+				glog.V(5).Infof("Found non-default node with duplicate machine id: %s", nodes.Items[i].Name)
+				nodesToRemove = append(nodesToRemove, nodes.Items[i].Name)
+			}
+		}
+
+		for i := 0; i < len(nodesToRemove); i++ {
+			glog.V(1).Infof("Deleting extra node %s", nodesToRemove[i])
+			err = kclient.Core().Nodes().Delete(nodesToRemove[i], nil)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // StartNode starts the OpenShift node as a Docker container
@@ -539,7 +581,7 @@ func (h *Helper) copyConfig() (string, error) {
 }
 
 func (h *Helper) GetNodeConfigFromLocalDir(configDir string) (*configapi.NodeConfig, string, error) {
-	configPath := filepath.Join(configDir, "node-localhost", "node-config.yaml")
+	configPath := filepath.Join(configDir, fmt.Sprintf("node-%s", defaultNodeName), "node-config.yaml")
 	glog.V(1).Infof("Reading node config from %s", configPath)
 	cfg, err := configapilatest.ReadNodeConfig(configPath)
 	if err != nil {
