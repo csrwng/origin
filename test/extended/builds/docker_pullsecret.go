@@ -7,6 +7,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][pullsecret][Conformance] docker build using a pull secret", func() {
@@ -36,12 +37,12 @@ var _ = g.Describe("[builds][pullsecret][Conformance] docker build using a pull 
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting a build")
-			br, err := exutil.StartBuildAndWait(oc, "docker-build")
+			br, err := exbuildutil.StartBuildAndWait(oc, "docker-build")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			br.AssertSuccess()
 
 			g.By("starting a second build that pulls the image from the first build")
-			br, err = exutil.StartBuildAndWait(oc, "docker-build-pull")
+			br, err = exbuildutil.StartBuildAndWait(oc, "docker-build-pull")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			br.AssertSuccess()
 

@@ -5,6 +5,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] build can have Dockerfile input", func() {
@@ -43,10 +44,10 @@ USER 1001
 
 			buildName := "busybox-1"
 			g.By("expecting the Dockerfile build is in Complete phase")
-			err = exutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), buildName, nil, nil, nil)
+			err = exbuildutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), buildName, nil, nil, nil)
 			//debug for failures
 			if err != nil {
-				exutil.DumpBuildLogs("busybox", oc)
+				exbuildutil.DumpBuildLogs("busybox", oc)
 			}
 			o.Expect(err).NotTo(o.HaveOccurred())
 
@@ -72,10 +73,10 @@ USER 1001
 
 			buildName := "centos-1"
 			g.By("expecting the Dockerfile build is in Complete phase")
-			err = exutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), buildName, nil, nil, nil)
+			err = exbuildutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), buildName, nil, nil, nil)
 			//debug for failures
 			if err != nil {
-				exutil.DumpBuildLogs("centos", oc)
+				exbuildutil.DumpBuildLogs("centos", oc)
 			}
 			o.Expect(err).NotTo(o.HaveOccurred())
 

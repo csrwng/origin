@@ -10,6 +10,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] s2i build with environment file in sources", func() {
@@ -45,7 +46,7 @@ var _ = g.Describe("[builds][Slow] s2i build with environment file in sources", 
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting a test build")
-			br, _ := exutil.StartBuildAndWait(oc, "test", "--from-dir", "test/extended/testdata/sti-environment-build-app")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "test", "--from-dir", "test/extended/testdata/sti-environment-build-app")
 			br.AssertSuccess()
 
 			g.By("getting the Docker image reference from ImageStream")

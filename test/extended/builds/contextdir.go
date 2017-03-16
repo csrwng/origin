@@ -11,6 +11,7 @@ import (
 
 	imageeco "github.com/openshift/origin/test/extended/image_ecosystem"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] builds with a context directory", func() {
@@ -41,9 +42,9 @@ var _ = g.Describe("[builds][Slow] builds with a context directory", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("waiting for build to finish")
-			err = exutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), s2iBuildName, exutil.CheckBuildSuccessFn, exutil.CheckBuildFailedFn, nil)
+			err = exbuildutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), s2iBuildName, exbuildutil.CheckBuildSuccessFn, exbuildutil.CheckBuildFailedFn, nil)
 			if err != nil {
-				exutil.DumpBuildLogs("s2icontext", oc)
+				exbuildutil.DumpBuildLogs("s2icontext", oc)
 			}
 			o.Expect(err).NotTo(o.HaveOccurred())
 
@@ -97,9 +98,9 @@ var _ = g.Describe("[builds][Slow] builds with a context directory", func() {
 
 			// build will fail if we don't use the right context dir because there won't be a dockerfile present.
 			g.By("waiting for build to finish")
-			err = exutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), dockerBuildName, exutil.CheckBuildSuccessFn, exutil.CheckBuildFailedFn, nil)
+			err = exbuildutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), dockerBuildName, exbuildutil.CheckBuildSuccessFn, exbuildutil.CheckBuildFailedFn, nil)
 			if err != nil {
-				exutil.DumpBuildLogs("dockercontext", oc)
+				exbuildutil.DumpBuildLogs("dockercontext", oc)
 			}
 			o.Expect(err).NotTo(o.HaveOccurred())
 		})

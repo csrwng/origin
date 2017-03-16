@@ -7,6 +7,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Conformance] build without output image", func() {
@@ -25,7 +26,7 @@ var _ = g.Describe("[builds][Conformance] build without output image", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("expecting build to pass without an output image reference specified")
-			br, err := exutil.StartBuildAndWait(oc, "test-docker")
+			br, err := exbuildutil.StartBuildAndWait(oc, "test-docker")
 			br.AssertSuccess()
 
 			g.By("verifying the build test-docker-1 output")
@@ -40,7 +41,7 @@ var _ = g.Describe("[builds][Conformance] build without output image", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("expecting build to pass without an output image reference specified")
-			br, err := exutil.StartBuildAndWait(oc, "test-sti")
+			br, err := exbuildutil.StartBuildAndWait(oc, "test-sti")
 			br.AssertSuccess()
 
 			g.By("verifying the build test-sti-1 output")

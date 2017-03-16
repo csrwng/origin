@@ -17,6 +17,7 @@ import (
 	"github.com/openshift/origin/pkg/client"
 	"github.com/openshift/origin/pkg/image/api"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 	testutil "github.com/openshift/origin/test/util"
 )
 
@@ -107,7 +108,7 @@ func BuildAndPushImageOfSizeWithBuilder(
 		return err
 	}
 
-	br, _ := exutil.StartBuildAndWait(oc, name, "--from-dir", tempDir)
+	br, _ := exbuildutil.StartBuildAndWait(oc, name, "--from-dir", tempDir)
 	if shouldSucceed {
 		br.AssertSuccess()
 	} else {

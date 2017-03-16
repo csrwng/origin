@@ -9,6 +9,7 @@ import (
 
 	buildapi "github.com/openshift/origin/pkg/build/api"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] the s2i build should support proxies", func() {
@@ -29,7 +30,7 @@ var _ = g.Describe("[builds][Slow] the s2i build should support proxies", func()
 		g.It("should start a build and wait for the build to fail", func() {
 			g.By("starting the build")
 
-			br, _ := exutil.StartBuildAndWait(oc, "sample-build")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "sample-build")
 			br.AssertFailure()
 
 			g.By("verifying the build sample-build-1 output")
@@ -51,7 +52,7 @@ var _ = g.Describe("[builds][Slow] the s2i build should support proxies", func()
 	g.Describe("start build with broken proxy and a no_proxy override", func() {
 		g.It("should start a build and wait for the build to succeed", func() {
 			g.By("starting the build")
-			br, _ := exutil.StartBuildAndWait(oc, "sample-build-noproxy")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "sample-build-noproxy")
 			br.AssertSuccess()
 		})
 

@@ -7,6 +7,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] Capabilities should be dropped for s2i builders", func() {
@@ -31,7 +32,7 @@ var _ = g.Describe("[builds][Slow] Capabilities should be dropped for s2i builde
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting the rootable-ruby build")
-			br, _ := exutil.StartBuildAndWait(oc, "rootable-ruby", fmt.Sprintf("--from-dir=%s", s2ibuilderFixture))
+			br, _ := exbuildutil.StartBuildAndWait(oc, "rootable-ruby", fmt.Sprintf("--from-dir=%s", s2ibuilderFixture))
 			br.AssertSuccess()
 
 			g.By("creating a build that tries to gain root access via su")
@@ -39,7 +40,7 @@ var _ = g.Describe("[builds][Slow] Capabilities should be dropped for s2i builde
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("start the root-access-build which attempts root access")
-			br2, _ := exutil.StartBuildAndWait(oc, "root-access-build")
+			br2, _ := exbuildutil.StartBuildAndWait(oc, "root-access-build")
 			br2.AssertFailure()
 		})
 	})

@@ -5,6 +5,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 const (
@@ -32,9 +33,9 @@ var _ = g.Describe("[builds][Conformance] oc new-app", func() {
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		g.By("waiting for the build to complete")
-		err = exutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), a58+"-1", nil, nil, nil)
+		err = exbuildutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), a58+"-1", nil, nil, nil)
 		if err != nil {
-			exutil.DumpBuildLogs(a58, oc)
+			exbuildutil.DumpBuildLogs(a58, oc)
 		}
 		o.Expect(err).NotTo(o.HaveOccurred())
 

@@ -7,6 +7,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds] build with empty source", func() {
@@ -27,7 +28,7 @@ var _ = g.Describe("[builds] build with empty source", func() {
 	g.Describe("started build", func() {
 		g.It("should build even with an empty source in build config", func() {
 			g.By("starting the empty source build")
-			br, err := exutil.StartBuildAndWait(oc, "nosrc-build", fmt.Sprintf("--from-dir=%s", exampleBuild))
+			br, err := exbuildutil.StartBuildAndWait(oc, "nosrc-build", fmt.Sprintf("--from-dir=%s", exampleBuild))
 			br.AssertSuccess()
 
 			g.By(fmt.Sprintf("verifying the status of %q", br.BuildPath))

@@ -9,6 +9,7 @@ import (
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] incremental s2i build", func() {
@@ -40,11 +41,11 @@ var _ = g.Describe("[builds][Slow] incremental s2i build", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting a test build")
-			br, _ := exutil.StartBuildAndWait(oc, "initial-build")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "initial-build")
 			br.AssertSuccess()
 
 			g.By("starting a test build using the image produced by the last build")
-			br2, _ := exutil.StartBuildAndWait(oc, "internal-build")
+			br2, _ := exbuildutil.StartBuildAndWait(oc, "internal-build")
 			br2.AssertSuccess()
 
 			g.By("getting the Docker image reference from ImageStream")

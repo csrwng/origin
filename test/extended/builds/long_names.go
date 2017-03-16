@@ -6,6 +6,7 @@ import (
 	g "github.com/onsi/ginkgo"
 	o "github.com/onsi/gomega"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] extremely long build/bc names are not problematic", func() {
@@ -30,22 +31,22 @@ var _ = g.Describe("[builds][Slow] extremely long build/bc names are not problem
 			bcB := "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890b"
 
 			g.By("starting long name build config A-1")
-			brA1, err := exutil.StartBuildAndWait(oc, bcA)
+			brA1, err := exbuildutil.StartBuildAndWait(oc, bcA)
 			brA1.AssertSuccess()
 
 			g.By("starting long name build config B-1")
-			brB1, err := exutil.StartBuildAndWait(oc, bcB)
+			brB1, err := exbuildutil.StartBuildAndWait(oc, bcB)
 			brB1.AssertSuccess()
 
 			g.By("starting long name build config A-2")
-			brA2, err := exutil.StartBuildAndWait(oc, bcA)
+			brA2, err := exbuildutil.StartBuildAndWait(oc, bcA)
 			brA2.AssertSuccess()
 
 			g.By("starting long name build config B-2")
-			brB2, err := exutil.StartBuildAndWait(oc, bcB)
+			brB2, err := exbuildutil.StartBuildAndWait(oc, bcB)
 			brB2.AssertSuccess()
 
-			builds := [...]*exutil.BuildResult{brA1, brB1, brA2, brB2}
+			builds := [...]*exbuildutil.BuildResult{brA1, brB1, brA2, brB2}
 
 			g.By("Verifying gets for build configs and builds")
 			for _, br := range builds {

@@ -6,6 +6,7 @@ import (
 	g "github.com/onsi/ginkgo"
 	o "github.com/onsi/gomega"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 	e2e "k8s.io/kubernetes/test/e2e/framework"
 )
 
@@ -44,7 +45,7 @@ var _ = g.Describe("[builds][Slow] s2i extended build", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("building jvm-runner image")
-			br, _ := exutil.StartBuildAndWait(oc, "jvm-runner")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "jvm-runner")
 			br.AssertSuccess()
 
 			g.By("creating build config")
@@ -52,7 +53,7 @@ var _ = g.Describe("[builds][Slow] s2i extended build", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("running the build")
-			br, _ = exutil.StartBuildAndWait(oc, "java-extended-build-from-repo", "--build-loglevel=5")
+			br, _ = exbuildutil.StartBuildAndWait(oc, "java-extended-build-from-repo", "--build-loglevel=5")
 			br.AssertSuccess()
 			buildLog, err := br.Logs()
 			if err != nil {
@@ -81,7 +82,7 @@ var _ = g.Describe("[builds][Slow] s2i extended build", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("building jvm-runner image")
-			br, _ := exutil.StartBuildAndWait(oc, "jvm-runner")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "jvm-runner")
 			br.AssertSuccess()
 
 			g.By("creating build config")
@@ -89,7 +90,7 @@ var _ = g.Describe("[builds][Slow] s2i extended build", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("running the build")
-			br, _ = exutil.StartBuildAndWait(oc, "java-extended-build-from-url", "--build-loglevel=5")
+			br, _ = exbuildutil.StartBuildAndWait(oc, "java-extended-build-from-url", "--build-loglevel=5")
 			br.AssertSuccess()
 			buildLog, err := br.Logs()
 			if err != nil {
@@ -118,7 +119,7 @@ var _ = g.Describe("[builds][Slow] s2i extended build", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("building jvm-runner-with-scripts image")
-			br, _ := exutil.StartBuildAndWait(oc, "jvm-runner-with-scripts")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "jvm-runner-with-scripts")
 			br.AssertSuccess()
 
 			g.By("creating build config")
@@ -126,7 +127,7 @@ var _ = g.Describe("[builds][Slow] s2i extended build", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("running the build")
-			br, _ = exutil.StartBuildAndWait(oc, "java-extended-build-from-image", "--build-loglevel=5")
+			br, _ = exbuildutil.StartBuildAndWait(oc, "java-extended-build-from-image", "--build-loglevel=5")
 			br.AssertSuccess()
 			buildLog, err := br.Logs()
 			if err != nil {

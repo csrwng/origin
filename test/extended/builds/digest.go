@@ -7,6 +7,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] completed builds should have digest of the image in their status", func() {
@@ -57,7 +58,7 @@ func testBuildDigest(oc *exutil.CLI, buildFixture string, buildLogLevel uint) {
 
 		logLevelArg := fmt.Sprintf("--build-loglevel=%d", buildLogLevel)
 		g.By("starting a test build")
-		br, err := exutil.StartBuildAndWait(oc, "test", logLevelArg)
+		br, err := exbuildutil.StartBuildAndWait(oc, "test", logLevelArg)
 
 		g.By("checking that the image digest has been saved to the build status")
 		o.Expect(br.Build.Status.Output.To).NotTo(o.BeNil())

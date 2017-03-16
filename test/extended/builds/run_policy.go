@@ -14,6 +14,7 @@ import (
 	buildclient "github.com/openshift/origin/pkg/build/client"
 	buildutil "github.com/openshift/origin/pkg/build/util"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] using build configuration runPolicy", func() {
@@ -46,7 +47,7 @@ var _ = g.Describe("[builds][Slow] using build configuration runPolicy", func() 
 			defer buildWatch.Stop()
 
 			// Start first build
-			stdout, _, err := exutil.StartBuild(oc, bcName, "-o=name")
+			stdout, _, err := exbuildutil.StartBuild(oc, bcName, "-o=name")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			o.Expect(strings.TrimSpace(stdout)).ShouldNot(o.HaveLen(0))
 			// extract build name from "build/buildName" resource id
@@ -63,7 +64,7 @@ var _ = g.Describe("[builds][Slow] using build configuration runPolicy", func() 
 			}
 
 			for i := 0; i < 2; i++ {
-				stdout, _, err = exutil.StartBuild(oc, bcName, "-o=name")
+				stdout, _, err = exbuildutil.StartBuild(oc, bcName, "-o=name")
 				o.Expect(err).NotTo(o.HaveOccurred())
 				o.Expect(strings.TrimSpace(stdout)).ShouldNot(o.HaveLen(0))
 				startedBuilds = append(startedBuilds, strings.TrimSpace(strings.Split(stdout, "/")[1]))
@@ -121,7 +122,7 @@ var _ = g.Describe("[builds][Slow] using build configuration runPolicy", func() 
 			buildVerified := map[string]bool{}
 
 			for i := 0; i < 3; i++ {
-				stdout, _, err := exutil.StartBuild(oc, bcName, "-o=name")
+				stdout, _, err := exbuildutil.StartBuild(oc, bcName, "-o=name")
 				o.Expect(err).NotTo(o.HaveOccurred())
 				startedBuilds = append(startedBuilds, strings.TrimSpace(strings.Split(stdout, "/")[1]))
 			}
@@ -175,7 +176,7 @@ var _ = g.Describe("[builds][Slow] using build configuration runPolicy", func() 
 			bcName := "sample-serial-build"
 
 			for i := 0; i < 3; i++ {
-				_, _, err := exutil.StartBuild(oc, bcName)
+				_, _, err := exbuildutil.StartBuild(oc, bcName)
 				o.Expect(err).NotTo(o.HaveOccurred())
 			}
 
@@ -229,7 +230,7 @@ var _ = g.Describe("[builds][Slow] using build configuration runPolicy", func() 
 			defer buildWatch.Stop()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			stdout, _, err := exutil.StartBuild(oc, bcName, "-o=name")
+			stdout, _, err := exbuildutil.StartBuild(oc, bcName, "-o=name")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			startedBuilds = append(startedBuilds, strings.TrimSpace(strings.Split(stdout, "/")[1]))
 
@@ -250,7 +251,7 @@ var _ = g.Describe("[builds][Slow] using build configuration runPolicy", func() 
 
 			// Trigger two more builds
 			for i := 0; i < 2; i++ {
-				stdout, _, err = exutil.StartBuild(oc, bcName, "-o=name")
+				stdout, _, err = exbuildutil.StartBuild(oc, bcName, "-o=name")
 				o.Expect(err).NotTo(o.HaveOccurred())
 				startedBuilds = append(startedBuilds, strings.TrimSpace(strings.Split(stdout, "/")[1]))
 			}

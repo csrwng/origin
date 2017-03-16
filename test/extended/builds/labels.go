@@ -8,6 +8,7 @@ import (
 
 	eximages "github.com/openshift/origin/test/extended/images"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] result image should have proper labels set", func() {
@@ -38,7 +39,7 @@ var _ = g.Describe("[builds][Slow] result image should have proper labels set", 
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting a test build")
-			br, err := exutil.StartBuildAndWait(oc, "test")
+			br, err := exbuildutil.StartBuildAndWait(oc, "test")
 			br.AssertSuccess()
 
 			g.By("getting the Docker image reference from ImageStream")
@@ -67,7 +68,7 @@ var _ = g.Describe("[builds][Slow] result image should have proper labels set", 
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting a test build")
-			br, err := exutil.StartBuildAndWait(oc, "test")
+			br, err := exbuildutil.StartBuildAndWait(oc, "test")
 			br.AssertSuccess()
 
 			g.By("getting the Docker image reference from ImageStream")

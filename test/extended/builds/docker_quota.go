@@ -7,6 +7,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][quota][Slow] docker build with a quota", func() {
@@ -36,7 +37,7 @@ var _ = g.Describe("[builds][quota][Slow] docker build with a quota", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting a test build")
-			br, err := exutil.StartBuildAndWait(oc, "docker-build-quota", "--from-dir", exutil.FixturePath("testdata", "build-quota"))
+			br, err := exbuildutil.StartBuildAndWait(oc, "docker-build-quota", "--from-dir", exutil.FixturePath("testdata", "build-quota"))
 
 			g.By("expecting the build is in Failed phase")
 			br.AssertFailure()

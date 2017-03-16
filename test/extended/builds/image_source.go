@@ -7,6 +7,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] build can have Docker image source", func() {
@@ -35,7 +36,7 @@ var _ = g.Describe("[builds][Slow] build can have Docker image source", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting the source strategy build")
-			br, err := exutil.StartBuildAndWait(oc, "imagesourcebuild")
+			br, err := exbuildutil.StartBuildAndWait(oc, "imagesourcebuild")
 			br.AssertSuccess()
 
 			g.By("expecting the pod to deploy successfully")
@@ -58,7 +59,7 @@ var _ = g.Describe("[builds][Slow] build can have Docker image source", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting the docker strategy build")
-			br, err := exutil.StartBuildAndWait(oc, "imagedockerbuild")
+			br, err := exbuildutil.StartBuildAndWait(oc, "imagedockerbuild")
 			br.AssertSuccess()
 
 			g.By("expect the pod to deploy successfully")

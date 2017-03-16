@@ -9,6 +9,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Conformance] remove all builds when build configuration is removed", func() {
@@ -34,7 +35,7 @@ var _ = g.Describe("[builds][Conformance] remove all builds when build configura
 
 			g.By("starting multiple builds")
 			for i := range builds {
-				stdout, _, err := exutil.StartBuild(oc, "sample-build", "-o=name")
+				stdout, _, err := exbuildutil.StartBuild(oc, "sample-build", "-o=name")
 				o.Expect(err).NotTo(o.HaveOccurred())
 				builds[i] = stdout
 			}

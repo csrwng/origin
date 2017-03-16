@@ -10,6 +10,7 @@ import (
 
 	buildapi "github.com/openshift/origin/pkg/build/api"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] update failure status", func() {
@@ -43,7 +44,7 @@ var _ = g.Describe("[builds][Slow] update failure status", func() {
 			err := oc.Run("create").Args("-f", postCommitHookFixture).Execute()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			br, err := exutil.StartBuildAndWait(oc, "statusfail-postcommithook", "--build-loglevel=5")
+			br, err := exbuildutil.StartBuildAndWait(oc, "statusfail-postcommithook", "--build-loglevel=5")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			br.AssertFailure()
 			br.DumpLogs()
@@ -60,7 +61,7 @@ var _ = g.Describe("[builds][Slow] update failure status", func() {
 			err := oc.Run("create").Args("-f", fetchDockerSrc).Execute()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			br, err := exutil.StartBuildAndWait(oc, "statusfail-fetchsourcedocker", "--build-loglevel=5")
+			br, err := exbuildutil.StartBuildAndWait(oc, "statusfail-fetchsourcedocker", "--build-loglevel=5")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			br.AssertFailure()
 			br.DumpLogs()
@@ -77,7 +78,7 @@ var _ = g.Describe("[builds][Slow] update failure status", func() {
 			err := oc.Run("create").Args("-f", fetchS2ISrc).Execute()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			br, err := exutil.StartBuildAndWait(oc, "statusfail-fetchsourcesourcetoimage", "--build-loglevel=5")
+			br, err := exbuildutil.StartBuildAndWait(oc, "statusfail-fetchsourcesourcetoimage", "--build-loglevel=5")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			br.AssertFailure()
 			br.DumpLogs()
@@ -94,7 +95,7 @@ var _ = g.Describe("[builds][Slow] update failure status", func() {
 			err := oc.Run("create").Args("-f", builderImageFixture).Execute()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			br, err := exutil.StartBuildAndWait(oc, "statusfail-builderimage", "--build-loglevel=5")
+			br, err := exbuildutil.StartBuildAndWait(oc, "statusfail-builderimage", "--build-loglevel=5")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			br.AssertFailure()
 			br.DumpLogs()
@@ -111,7 +112,7 @@ var _ = g.Describe("[builds][Slow] update failure status", func() {
 			err := oc.Run("create").Args("-f", pushToRegistryFixture).Execute()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			br, err := exutil.StartBuildAndWait(oc, "statusfail-pushtoregistry", "--build-loglevel=5")
+			br, err := exbuildutil.StartBuildAndWait(oc, "statusfail-pushtoregistry", "--build-loglevel=5")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			br.AssertFailure()
 			br.DumpLogs()
@@ -128,7 +129,7 @@ var _ = g.Describe("[builds][Slow] update failure status", func() {
 			err := oc.Run("create").Args("-f", failedAssembleFixture).Execute()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			br, err := exutil.StartBuildAndWait(oc, "statusfail-assemblescript", fmt.Sprintf("--from-dir=%s", binaryBuildDir), "--build-loglevel=5")
+			br, err := exbuildutil.StartBuildAndWait(oc, "statusfail-assemblescript", fmt.Sprintf("--from-dir=%s", binaryBuildDir), "--build-loglevel=5")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			br.AssertFailure()
 			br.DumpLogs()
@@ -145,7 +146,7 @@ var _ = g.Describe("[builds][Slow] update failure status", func() {
 			err := oc.Run("create").Args("-f", fetchRuntimeArtifactsFixture).Execute()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
-			br, err := exutil.StartBuildAndWait(oc, "statusfail-runtimeartifacts", "--build-loglevel=5")
+			br, err := exbuildutil.StartBuildAndWait(oc, "statusfail-runtimeartifacts", "--build-loglevel=5")
 			o.Expect(err).NotTo(o.HaveOccurred())
 			br.AssertFailure()
 			br.DumpLogs()

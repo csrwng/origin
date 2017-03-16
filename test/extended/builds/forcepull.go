@@ -8,6 +8,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 
 func scrapeLogs(bldPrefix string, oc *exutil.CLI) {
 	// kick off the app/lang build and verify the builder image accordingly
-	br, err := exutil.StartBuildAndWait(oc, bldPrefix)
+	br, err := exbuildutil.StartBuildAndWait(oc, bldPrefix)
 	o.ExpectWithOffset(1, err).NotTo(o.HaveOccurred())
 
 	out, err := br.Logs()
@@ -52,7 +53,7 @@ func checkPodFlag(bldPrefix string, oc *exutil.CLI) {
 	}
 
 	// kick off the app/lang build and verify the builder image accordingly
-	_, err := exutil.StartBuildAndWait(oc, bldPrefix)
+	_, err := exbuildutil.StartBuildAndWait(oc, bldPrefix)
 	o.ExpectWithOffset(1, err).NotTo(o.HaveOccurred())
 
 	out, err := oc.Run("get").Args("pods", bldPrefix+"-1-build", "-o", "jsonpath='{.spec.containers[0].imagePullPolicy}'").Output()

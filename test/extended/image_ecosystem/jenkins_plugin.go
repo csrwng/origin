@@ -17,6 +17,7 @@ import (
 	"k8s.io/kubernetes/pkg/util/wait"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 	"github.com/openshift/origin/test/extended/util/jenkins"
 )
 
@@ -152,7 +153,7 @@ var _ = g.Describe("[image_ecosystem][jenkins][Slow] openshift pipeline plugin",
 		g.By("kick off the build for the jenkins ephermeral and application templates")
 
 		newAppArgs := []string{exutil.FixturePath("..", "..", "examples", "jenkins", "jenkins-ephemeral-template.json")}
-		newAppArgs, useSnapshotImage := jenkins.SetupSnapshotImage(jenkins.UseLocalPluginSnapshotEnvVarName, localPluginSnapshotImage, localPluginSnapshotImageStream, newAppArgs, oc)
+		newAppArgs, useSnapshotImage := exbuildutil.SetupSnapshotImage(jenkins.UseLocalPluginSnapshotEnvVarName, localPluginSnapshotImage, localPluginSnapshotImageStream, newAppArgs, oc)
 
 		err := oc.Run("new-app").Args(newAppArgs...).Execute()
 		o.Expect(err).NotTo(o.HaveOccurred())

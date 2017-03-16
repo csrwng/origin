@@ -11,6 +11,7 @@ import (
 	"k8s.io/kubernetes/pkg/labels"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[image_ecosystem][python][Slow] hot deploy for openshift python image", func() {
@@ -38,9 +39,9 @@ var _ = g.Describe("[image_ecosystem][python][Slow] hot deploy for openshift pyt
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("waiting for build to finish")
-			err = exutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), rcNameOne, nil, nil, nil)
+			err = exbuildutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), rcNameOne, nil, nil, nil)
 			if err != nil {
-				exutil.DumpBuildLogs(dcName, oc)
+				exbuildutil.DumpBuildLogs(dcName, oc)
 			}
 			o.Expect(err).NotTo(o.HaveOccurred())
 

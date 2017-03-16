@@ -8,6 +8,7 @@ import (
 
 	buildapi "github.com/openshift/origin/pkg/build/api"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds][Slow] builds should have deadlines", func() {
@@ -32,7 +33,7 @@ var _ = g.Describe("[builds][Slow] builds should have deadlines", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting the source build with --wait flag and short timeout")
-			br, err := exutil.StartBuildAndWait(oc, "source-build", "--wait")
+			br, err := exbuildutil.StartBuildAndWait(oc, "source-build", "--wait")
 			o.Expect(br.StartBuildErr).To(o.HaveOccurred()) // start-build should detect the build error
 
 			g.By("verifying the build status")
@@ -56,7 +57,7 @@ var _ = g.Describe("[builds][Slow] builds should have deadlines", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting the docker build with --wait flag and short timeout")
-			br, err := exutil.StartBuildAndWait(oc, "docker-build", "--wait")
+			br, err := exbuildutil.StartBuildAndWait(oc, "docker-build", "--wait")
 			o.Expect(br.StartBuildErr).To(o.HaveOccurred()) // start-build should detect the build error
 
 			g.By("verifying the build status")

@@ -8,6 +8,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 type SampleRepoConfig struct {
@@ -50,9 +51,9 @@ func NewSampleRepoTest(c SampleRepoConfig) func() {
 				buildName := c.buildConfigName + "-1"
 
 				g.By("expecting the build is in the Complete phase")
-				err = exutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), buildName, nil, nil, nil)
+				err = exbuildutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), buildName, nil, nil, nil)
 				if err != nil {
-					exutil.DumpBuildLogs(c.buildConfigName, oc)
+					exbuildutil.DumpBuildLogs(c.buildConfigName, oc)
 				}
 				o.Expect(err).NotTo(o.HaveOccurred())
 

@@ -7,6 +7,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[builds] build have source revision metadata", func() {
@@ -26,7 +27,7 @@ var _ = g.Describe("[builds] build have source revision metadata", func() {
 	g.Describe("started build", func() {
 		g.It("should contain source revision information", func() {
 			g.By("starting the build")
-			br, _ := exutil.StartBuildAndWait(oc, "sample-build")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "sample-build")
 			br.AssertSuccess()
 
 			g.By(fmt.Sprintf("verifying the status of %q", br.BuildPath))

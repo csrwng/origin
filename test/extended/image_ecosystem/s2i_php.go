@@ -8,6 +8,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 )
 
 var _ = g.Describe("[image_ecosystem][php][Slow] hot deploy for openshift php image", func() {
@@ -31,9 +32,9 @@ var _ = g.Describe("[image_ecosystem][php][Slow] hot deploy for openshift php im
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("waiting for build to finish")
-			err = exutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), dcName, nil, nil, nil)
+			err = exbuildutil.WaitForABuild(oc.Client().Builds(oc.Namespace()), dcName, nil, nil, nil)
 			if err != nil {
-				exutil.DumpBuildLogs("cakephp-mysql-example", oc)
+				exbuildutil.DumpBuildLogs("cakephp-mysql-example", oc)
 			}
 			o.Expect(err).NotTo(o.HaveOccurred())
 

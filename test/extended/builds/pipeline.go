@@ -16,6 +16,7 @@ import (
 
 	"github.com/openshift/origin/pkg/build/api"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 	"github.com/openshift/origin/test/extended/util/jenkins"
 )
 
@@ -30,7 +31,7 @@ const (
 	syncPluginName                       = "openshift-sync"
 )
 
-func debugAnyJenkinsFailure(br *exutil.BuildResult, name string, oc *exutil.CLI, dumpMaster bool) {
+func debugAnyJenkinsFailure(br *exbuildutil.BuildResult, name string, oc *exutil.CLI, dumpMaster bool) {
 	if !br.BuildSuccess {
 		fmt.Fprintf(g.GinkgoWriter, "\n\n START debugAnyJenkinsFailure\n\n")
 		j := jenkins.NewRef(oc)
@@ -65,9 +66,9 @@ var _ = g.Describe("[builds][Slow] openshift pipeline build", func() {
 			// Deploy Jenkins
 			var licensePrefix, pluginName string
 			newAppArgs := []string{"-f", jenkinsTemplatePath}
-			newAppArgs, useSnapshotImage := jenkins.SetupSnapshotImage(jenkins.UseLocalClientPluginSnapshotEnvVarName, localClientPluginSnapshotImage, localClientPluginSnapshotImageStream, newAppArgs, oc)
+			newAppArgs, useSnapshotImage := exbuildutil.SetupSnapshotImage(jenkins.UseLocalClientPluginSnapshotEnvVarName, localClientPluginSnapshotImage, localClientPluginSnapshotImageStream, newAppArgs, oc)
 			if !useSnapshotImage {
-				newAppArgs, useSnapshotImage = jenkins.SetupSnapshotImage(jenkins.UseLocalSyncPluginSnapshotEnvVarName, localSyncPluginSnapshotImage, localSyncPluginSnapshotImageStream, newAppArgs, oc)
+				newAppArgs, useSnapshotImage = exbuildutil.SetupSnapshotImage(jenkins.UseLocalSyncPluginSnapshotEnvVarName, localSyncPluginSnapshotImage, localSyncPluginSnapshotImageStream, newAppArgs, oc)
 				licensePrefix = syncLicenseText
 				pluginName = syncPluginName
 			} else {
@@ -140,7 +141,7 @@ var _ = g.Describe("[builds][Slow] openshift pipeline build", func() {
 
 			// start the build
 			g.By("starting the pipeline build and waiting for it to complete")
-			br, _ := exutil.StartBuildAndWait(oc, "openshift-jee-sample")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "openshift-jee-sample")
 			debugAnyJenkinsFailure(br, oc.Namespace()+"-openshift-jee-sample", oc, true)
 			br.AssertSuccess()
 
@@ -167,7 +168,7 @@ var _ = g.Describe("[builds][Slow] openshift pipeline build", func() {
 
 			// start the build
 			g.By("starting the pipeline build and waiting for it to complete")
-			br, _ := exutil.StartBuildAndWait(oc, "sample-pipeline-openshift-client-plugin")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "sample-pipeline-openshift-client-plugin")
 			debugAnyJenkinsFailure(br, oc.Namespace()+"-sample-pipeline-openshift-client-plugin", oc, true)
 			br.AssertSuccess()
 
@@ -193,7 +194,7 @@ var _ = g.Describe("[builds][Slow] openshift pipeline build", func() {
 
 			// start the build
 			g.By("starting the pipeline build and waiting for it to complete")
-			br, _ := exutil.StartBuildAndWait(oc, "mapsapp-pipeline")
+			br, _ := exbuildutil.StartBuildAndWait(oc, "mapsapp-pipeline")
 			debugAnyJenkinsFailure(br, oc.Namespace()+"-mapsapp-pipeline", oc, true)
 			debugAnyJenkinsFailure(br, oc.Namespace()+"-mlbparks-pipeline", oc, false)
 			debugAnyJenkinsFailure(br, oc.Namespace()+"-nationalparks-pipeline", oc, false)
@@ -218,13 +219,13 @@ var _ = g.Describe("[builds][Slow] openshift pipeline build", func() {
 		g.It("Blue-green pipeline should build and complete successfully", func() {
 			// instantiate the template
 			g.By(fmt.Sprintf("calling oc new-app -f %q", blueGreenPipelinePath))
-			err := oc.Run("new-app").Args("-f", blueGreenPipelinePath).Execute()
+			err := oc.Run("new-app").Args("-f", blueGreenPipelinePath, "-p", "VERBOSE=true").Execute()
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			buildAndSwitch := func(newColour string) {
 				// start the build
 				g.By("starting the bluegreen pipeline build")
-				br, err := exutil.StartBuildResult(oc, "bluegreen-pipeline")
+				br, err := exbuildutil.StartBuildResult(oc, "bluegreen-pipeline")
 				o.Expect(err).NotTo(o.HaveOccurred())
 
 				errs := make(chan error, 2)
@@ -290,10 +291,10 @@ var _ = g.Describe("[builds][Slow] openshift pipeline build", func() {
 						case err != nil:
 							errs <- fmt.Errorf("error getting build: %s", err)
 							return
-						case exutil.CheckBuildFailedFn(build):
+						case exbuildutil.CheckBuildFailedFn(build):
 							errs <- nil
 							return
-						case exutil.CheckBuildSuccessFn(build):
+						case exbuildutil.CheckBuildSuccessFn(build):
 							br.BuildSuccess = true
 							errs <- nil
 							return

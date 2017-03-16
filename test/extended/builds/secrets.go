@@ -6,6 +6,7 @@ import (
 	g "github.com/onsi/ginkgo"
 	o "github.com/onsi/gomega"
 	exutil "github.com/openshift/origin/test/extended/util"
+	exbuildutil "github.com/openshift/origin/test/extended/util/build"
 	kapi "k8s.io/kubernetes/pkg/api"
 )
 
@@ -42,7 +43,7 @@ var _ = g.Describe("[builds][Slow] can use build secrets", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting the test source build")
-			br, _ := exutil.StartBuildAndWait(oc, "test", "--from-dir", sourceBuildBinDir)
+			br, _ := exbuildutil.StartBuildAndWait(oc, "test", "--from-dir", sourceBuildBinDir)
 			br.AssertSuccess()
 
 			g.By("getting the image name")
@@ -77,7 +78,7 @@ var _ = g.Describe("[builds][Slow] can use build secrets", func() {
 			o.Expect(err).NotTo(o.HaveOccurred())
 
 			g.By("starting the test docker build")
-			br, _ := exutil.StartBuildAndWait(oc, "test", "--from-file", dockerBuildDockerfile)
+			br, _ := exbuildutil.StartBuildAndWait(oc, "test", "--from-file", dockerBuildDockerfile)
 			br.AssertSuccess()
 
 			g.By("getting the image name")
