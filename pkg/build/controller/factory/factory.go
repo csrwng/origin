@@ -21,12 +21,9 @@ import (
 	kclientsetexternal "k8s.io/kubernetes/pkg/client/clientset_generated/clientset"
 	kclientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 
-	builddefaults "github.com/openshift/origin/pkg/build/admission/defaults"
-	buildoverrides "github.com/openshift/origin/pkg/build/admission/overrides"
 	buildapi "github.com/openshift/origin/pkg/build/api"
 	buildclient "github.com/openshift/origin/pkg/build/client"
 	buildcontroller "github.com/openshift/origin/pkg/build/controller"
-	"github.com/openshift/origin/pkg/build/controller/policy"
 	strategy "github.com/openshift/origin/pkg/build/controller/strategy"
 	osclient "github.com/openshift/origin/pkg/client"
 	controller "github.com/openshift/origin/pkg/controller"
@@ -65,110 +62,6 @@ func limitedLogAndRetry(buildupdater buildclient.BuildUpdater, maxTimeout time.D
 			return !kerrors.IsNotFound(err)
 		}
 		return false
-	}
-}
-
-// BuildControllerFactory constructs BuildController objects
-type BuildControllerFactory struct {
-	OSClient            osclient.Interface
-	KubeClient          kclientset.Interface
-	ExternalKubeClient  kclientsetexternal.Interface
-	BuildUpdater        buildclient.BuildUpdater
-	BuildLister         buildclient.BuildLister
-	BuildConfigGetter   buildclient.BuildConfigGetter
-	BuildDeleter        buildclient.BuildDeleter
-	DockerBuildStrategy *strategy.DockerBuildStrategy
-	SourceBuildStrategy *strategy.SourceBuildStrategy
-	CustomBuildStrategy *strategy.CustomBuildStrategy
-	BuildDefaults       builddefaults.BuildDefaults
-	BuildOverrides      buildoverrides.BuildOverrides
-
-	// Stop may be set to allow controllers created by this factory to be terminated.
-	Stop <-chan struct{}
-}
-
-// Create constructs a BuildController
-func (factory *BuildControllerFactory) Create() controller.RunnableController {
-	queue := cache.NewResyncableFIFO(cache.MetaNamespaceKeyFunc)
-	cache.NewReflector(newBuildLW(factory.OSClient), &buildapi.Build{}, queue, 2*time.Minute).RunUntil(factory.Stop)
-
-	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartRecordingToSink(&kv1core.EventSinkImpl{Interface: kv1core.New(factory.ExternalKubeClient.CoreV1().RESTClient()).Events("")})
-
-	client := ControllerClient{factory.KubeClient, factory.OSClient}
-	buildController := &buildcontroller.BuildController{
-		BuildUpdater:      factory.BuildUpdater,
-		BuildLister:       factory.BuildLister,
-		BuildConfigGetter: factory.BuildConfigGetter,
-		BuildDeleter:      factory.BuildDeleter,
-		ImageStreamClient: client,
-		PodManager:        client,
-		RunPolicies:       policy.GetAllRunPolicies(factory.BuildLister, factory.BuildUpdater),
-		BuildStrategy: &typeBasedFactoryStrategy{
-			DockerBuildStrategy: factory.DockerBuildStrategy,
-			SourceBuildStrategy: factory.SourceBuildStrategy,
-			CustomBuildStrategy: factory.CustomBuildStrategy,
-		},
-		Recorder:       eventBroadcaster.NewRecorder(kapi.Scheme, kclientv1.EventSource{Component: "build-controller"}),
-		BuildDefaults:  factory.BuildDefaults,
-		BuildOverrides: factory.BuildOverrides,
-	}
-
-	return &controller.RetryController{
-		Queue: queue,
-		RetryManager: controller.NewQueueRetryManager(
-			queue,
-			cache.MetaNamespaceKeyFunc,
-			limitedLogAndRetry(factory.BuildUpdater, 30*time.Minute),
-			flowcontrol.NewTokenBucketRateLimiter(1, 10)),
-		Handle: func(obj interface{}) error {
-			build := obj.(*buildapi.Build)
-			err := buildController.HandleBuild(build)
-			if err != nil {
-				// Update the build status message only if it changed.
-				if msg := errors.ErrorToSentence(err); build.Status.Message != msg {
-					// Set default Reason.
-					if len(build.Status.Reason) == 0 {
-						build.Status.Reason = buildapi.StatusReasonError
-					}
-					build.Status.Message = msg
-					if err := buildController.BuildUpdater.Update(build.Namespace, build); err != nil {
-						glog.V(2).Infof("Failed to update status message of Build %s/%s: %v", build.Namespace, build.Name, err)
-					}
-					buildController.Recorder.Eventf(build, kapi.EventTypeWarning, "HandleBuildError", "Build has error: %v", err)
-				}
-			}
-			return err
-		},
-	}
-}
-
-// CreateDeleteController constructs a BuildDeleteController
-func (factory *BuildControllerFactory) CreateDeleteController() controller.RunnableController {
-	client := ControllerClient{factory.KubeClient, factory.OSClient}
-	queue := cache.NewDeltaFIFO(cache.MetaNamespaceKeyFunc, nil, keyListerGetter{})
-	cache.NewReflector(&buildDeleteLW{client, queue}, &buildapi.Build{}, queue, 5*time.Minute).RunUntil(factory.Stop)
-
-	buildDeleteController := &buildcontroller.BuildDeleteController{
-		PodManager: client,
-	}
-
-	return &controller.RetryController{
-		Queue: queue,
-		RetryManager: controller.NewQueueRetryManager(
-			queue,
-			queue.KeyOf,
-			controller.RetryNever,
-			flowcontrol.NewTokenBucketRateLimiter(1, 10)),
-		Handle: func(obj interface{}) error {
-			deltas := obj.(cache.Deltas)
-			for _, delta := range deltas {
-				if delta.Type == cache.Deleted {
-					return buildDeleteController.HandleBuildDeletion(delta.Object.(*buildapi.Build))
-				}
-			}
-			return nil
-		},
 	}
 }
 

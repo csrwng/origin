@@ -32,7 +32,6 @@ import (
 
 	"github.com/openshift/origin/pkg/authorization/controller/authorizationsync"
 	buildclient "github.com/openshift/origin/pkg/build/client"
-	buildpodcontroller "github.com/openshift/origin/pkg/build/controller/buildpod"
 	buildcontrollerfactory "github.com/openshift/origin/pkg/build/controller/factory"
 	osclient "github.com/openshift/origin/pkg/client"
 	oscache "github.com/openshift/origin/pkg/client/cache"
@@ -250,16 +249,6 @@ func (c *MasterConfig) RunProjectCache() {
 	c.ProjectCache.Run()
 }
 
-// RunBuildPodController starts the build/pod status sync loop for build status
-func (c *MasterConfig) RunBuildPodController() {
-	buildInfomer := c.Informers.Builds().Informer()
-	podInformer := c.Informers.InternalKubernetesInformers().Core().InternalVersion().Pods()
-	osclient, kclientInternal, kclientExternal := c.BuildPodControllerClients()
-
-	controller := buildpodcontroller.NewBuildPodController(buildInfomer, podInformer, kclientInternal, kclientExternal, osclient)
-	go controller.Run(5, utilwait.NeverStop)
-}
-
 // RunBuildConfigChangeController starts the build config change trigger controller process.
 func (c *MasterConfig) RunBuildConfigChangeController() {
 	bcClient, internalKubeClientset, externalKubeClientset := c.BuildConfigChangeControllerClients()
@@ -271,7 +260,7 @@ func (c *MasterConfig) RunBuildConfigChangeController() {
 		BuildConfigInstantiator: bcInstantiator,
 		BuildLister:             buildclient.NewOSClientBuildClient(bcClient),
 		BuildConfigGetter:       buildclient.NewOSClientBuildConfigClient(bcClient),
-		BuildDeleter:            buildclient.NewBuildDeleter(bcClient),
+		BuildDeleter:            buildclient.NewOSClientBuildClient(bcClient),
 	}
 	factory.Create().Run()
 }

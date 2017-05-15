@@ -5,14 +5,16 @@ import (
 	"path/filepath"
 	"strconv"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kvalidation "k8s.io/apimachinery/pkg/util/validation"
+	kapi "k8s.io/kubernetes/pkg/api"
+
 	"github.com/golang/glog"
 	buildapi "github.com/openshift/origin/pkg/build/api"
 	"github.com/openshift/origin/pkg/build/builder/cmd/dockercfg"
 	imageapi "github.com/openshift/origin/pkg/image/api"
 	"github.com/openshift/origin/pkg/util/namer"
 	"github.com/openshift/origin/pkg/version"
-	kvalidation "k8s.io/apimachinery/pkg/util/validation"
-	kapi "k8s.io/kubernetes/pkg/api"
 )
 
 const (
@@ -215,4 +217,17 @@ func getContainerVerbosity(containerEnv []kapi.EnvVar) (verbosity string) {
 // getPodLabels creates labels for the Build Pod
 func getPodLabels(build *buildapi.Build) map[string]string {
 	return map[string]string{buildapi.BuildLabel: buildapi.LabelValue(build.Name)}
+}
+
+func setOwnerReference(pod *kapi.Pod, build *buildapi.Build) {
+	t := true
+	pod.OwnerReferences = []metav1.OwnerReference{
+		{
+			APIVersion: "v1",
+			Kind:       "Build",
+			Name:       build.Name,
+			UID:        build.UID,
+			Controller: &t,
+		},
+	}
 }

@@ -96,8 +96,12 @@ type detailsStrategy struct {
 }
 
 // Prepares a build for update by only allowing an update to build details.
-// Build details currently consists of: Spec.Revision, Status.Reason, and
-// Status.Message, all of which are updated from within the build pod
+// Build details currently consists of: Spec.Revision, Status.Stages, and
+// Status.Output.To, all of which are updated from within the build pod
+// It also sets annotations on the build that request the build controller to update
+// Status.Phase, Status.Messsage and Status.Reason. When the build controller
+// processes the build update, it will prioritize the annotation values over
+// existing or computed values.
 func (detailsStrategy) PrepareForUpdate(ctx apirequest.Context, obj, old runtime.Object) {
 	newBuild := obj.(*api.Build)
 	oldBuild := old.(*api.Build)
@@ -114,11 +118,13 @@ func (detailsStrategy) PrepareForUpdate(ctx apirequest.Context, obj, old runtime
 	reason := newBuild.Status.Reason
 	outputTo := newBuild.Status.Output.To
 	*newBuild = *oldBuild
-	newBuild.Status.Phase = phase
+
+	newBuild.Annotations[api.BuildPodRequestedPhaseAnnotation] = string(phase)
+	newBuild.Annotations[api.BuildPodRequestedReasonAnnotation] = string(reason)
+	newBuild.Annotations[api.BuildPodRequestedMessageAnnotation] = message
+
 	newBuild.Status.Stages = stages
 	newBuild.Spec.Revision = revision
-	newBuild.Status.Reason = reason
-	newBuild.Status.Message = message
 	newBuild.Status.Output.To = outputTo
 }
 

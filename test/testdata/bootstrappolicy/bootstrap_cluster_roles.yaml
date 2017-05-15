@@ -3543,6 +3543,7 @@ items:
     - delete
     - get
     - list
+    - patch
     - update
     - watch
   - apiGroups:
@@ -3561,6 +3562,7 @@ items:
     - builds/custom
     - builds/docker
     - builds/jenkinspipeline
+    - builds/optimizeddocker
     - builds/source
     verbs:
     - create
@@ -3572,6 +3574,15 @@ items:
     - imagestreams
     verbs:
     - get
+    - list
+  - apiGroups:
+    - ""
+    attributeRestrictions: null
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
   - apiGroups:
     - ""
     attributeRestrictions: null
@@ -3582,6 +3593,7 @@ items:
     - delete
     - get
     - list
+    - watch
   - apiGroups:
     - ""
     attributeRestrictions: null

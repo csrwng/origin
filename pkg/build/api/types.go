@@ -31,6 +31,12 @@ const (
 	BuildJenkinsBuildURIAnnotation = "openshift.io/jenkins-build-uri"
 	// BuildSourceSecretMatchURIAnnotationPrefix is a prefix for annotations on a Secret which indicate a source URI against which the Secret can be used
 	BuildSourceSecretMatchURIAnnotationPrefix = "build.openshift.io/source-secret-match-uri-"
+	// BuildPodRequestedPhaseAnnotation is an annotation that contains the build phase requested by the build pod
+	BuildPodRequestedPhaseAnnotation = "build.openshift.io/build-pod-requested-phase"
+	// BuildPodRequestedReasonAnnotation is an annotation that contains the reason requested by the build pod
+	BuildPodRequestedReasonAnnotation = "build.openshift.io/build-pod-requested-reason"
+	// BuildPodRequestedMessageAnnotation is an annotation that contains the message requested by the build pod
+	BuildPodRequestedMessageAnnotation = "build.openshift.io/build-pod-requested-message"
 	// BuildLabel is the key of a Pod label whose value is the Name of a Build which is run.
 	// NOTE: The value for this label may not contain the entire Build name because it will be
 	// truncated to maximum label length.
