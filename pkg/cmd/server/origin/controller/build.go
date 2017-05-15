@@ -7,8 +7,7 @@ import (
 
 	builddefaults "github.com/openshift/origin/pkg/build/admission/defaults"
 	buildoverrides "github.com/openshift/origin/pkg/build/admission/overrides"
-	buildclient "github.com/openshift/origin/pkg/build/client"
-	buildcontrollerfactory "github.com/openshift/origin/pkg/build/controller/factory"
+	buildcontroller "github.com/openshift/origin/pkg/build/controller/build"
 	buildstrategy "github.com/openshift/origin/pkg/build/controller/strategy"
 	configapi "github.com/openshift/origin/pkg/cmd/server/api"
 	"github.com/openshift/origin/pkg/cmd/server/bootstrappolicy"
@@ -48,15 +47,22 @@ func (c *BuildControllerConfig) RunController(ctx ControllerContext) (bool, erro
 	if err != nil {
 		return true, err
 	}
+	kubeClient := ctx.ClientBuilder.KubeInternalClientOrDie(bootstrappolicy.InfraBuildControllerServiceAccountName)
+	externalKubeClient := ctx.ClientBuilder.ClientOrDie(bootstrappolicy.InfraBuildControllerServiceAccountName)
 
-	factory := buildcontrollerfactory.BuildControllerFactory{
-		KubeClient:         ctx.ClientBuilder.KubeInternalClientOrDie(bootstrappolicy.InfraBuildControllerServiceAccountName),
-		ExternalKubeClient: ctx.ClientBuilder.ClientOrDie(bootstrappolicy.InfraBuildControllerServiceAccountName),
-		OSClient:           deprecatedOpenshiftClient,
-		BuildUpdater:       buildclient.NewOSClientBuildClient(deprecatedOpenshiftClient),
-		BuildLister:        buildclient.NewOSClientBuildClient(deprecatedOpenshiftClient),
-		BuildConfigGetter:  buildclient.NewOSClientBuildConfigClient(deprecatedOpenshiftClient),
-		BuildDeleter:       buildclient.NewBuildDeleter(deprecatedOpenshiftClient),
+	buildInformer := ctx.DeprecatedOpenshiftInformers.Builds()
+	imageStreamInformer := ctx.DeprecatedOpenshiftInformers.ImageStreams()
+	podInformer := ctx.DeprecatedOpenshiftInformers.InternalKubernetesInformers().Core().InternalVersion().Pods()
+	secretInformer := ctx.DeprecatedOpenshiftInformers.InternalKubernetesInformers().Core().InternalVersion().Secrets()
+
+	buildControllerParams := &buildcontroller.BuildControllerParams{
+		BuildInformer:       buildInformer,
+		ImageStreamInformer: imageStreamInformer,
+		PodInformer:         podInformer,
+		SecretInformer:      secretInformer,
+		KubeClientInternal:  kubeClient,
+		KubeClientExternal:  externalKubeClient,
+		OpenshiftClient:     deprecatedOpenshiftClient,
 		DockerBuildStrategy: &buildstrategy.DockerBuildStrategy{
 			Image: c.DockerImage,
 			// TODO: this will be set to --storage-version (the internal schema we use)
@@ -76,9 +82,6 @@ func (c *BuildControllerConfig) RunController(ctx ControllerContext) (bool, erro
 		BuildOverrides: buildOverrides,
 	}
 
-	controller := factory.Create()
-	controller.Run()
-	deleteController := factory.CreateDeleteController()
-	deleteController.Run()
+	go buildcontroller.NewBuildController(buildControllerParams).Run(5, ctx.Stop)
 	return true, nil
 }

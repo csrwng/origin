@@ -23,7 +23,6 @@ import (
 
 type controllerCount struct {
 	BuildControllers,
-	BuildPodControllers,
 	ImageChangeControllers,
 	ConfigChangeControllers int
 }
@@ -37,12 +36,12 @@ func TestConcurrentBuildControllers(t *testing.T) {
 	build.RunBuildControllerTest(t, osClient, kClient)
 }
 
-// TestConcurrentBuildPodControllers tests the lifecycle of a build pod when running multiple controllers.
-func TestConcurrentBuildPodControllers(t *testing.T) {
+// TestConcurrentBuildControllersPodSync tests the lifecycle of a build pod when running multiple controllers.
+func TestConcurrentBuildControllersPodSync(t *testing.T) {
 	defer testutil.DumpEtcdOnFailure(t)
-	// Start a master with multiple BuildPodControllers
-	osClient, kClient := setupBuildControllerTest(controllerCount{BuildPodControllers: 5}, t)
-	build.RunBuildPodControllerTest(t, osClient, kClient)
+	// Start a master with multiple BuildControllers
+	osClient, kClient := setupBuildControllerTest(controllerCount{BuildControllers: 5}, t)
+	build.RunBuildControllerPodSyncTest(t, osClient, kClient)
 }
 
 func TestConcurrentBuildImageChangeTriggerControllers(t *testing.T) {
@@ -157,9 +156,6 @@ func setupBuildControllerTest(counts controllerCount, t *testing.T) (*client.Cli
 		if err != nil {
 			t.Fatal(err)
 		}
-	}
-	for i := 0; i < counts.BuildPodControllers; i++ {
-		openshiftConfig.RunBuildPodController()
 	}
 	for i := 0; i < counts.ImageChangeControllers; i++ {
 		openshiftConfig.RunImageTriggerController()

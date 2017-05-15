@@ -81,26 +81,6 @@ func ValidateBuildUpdate(build *buildapi.Build, older *buildapi.Build) field.Err
 	return allErrs
 }
 
-func diffBuildSpec(newer buildapi.BuildSpec, older buildapi.BuildSpec) (string, error) {
-	codec := kapi.Codecs.LegacyCodec(v1.LegacySchemeGroupVersion)
-	newerObj := &buildapi.Build{Spec: newer}
-	olderObj := &buildapi.Build{Spec: older}
-
-	newerJSON, err := runtime.Encode(codec, newerObj)
-	if err != nil {
-		return "", fmt.Errorf("error encoding newer: %v", err)
-	}
-	olderJSON, err := runtime.Encode(codec, olderObj)
-	if err != nil {
-		return "", fmt.Errorf("error encoding older: %v", err)
-	}
-	patch, err := strategicpatch.CreateTwoWayMergePatch(olderJSON, newerJSON, &v1.Build{})
-	if err != nil {
-		return "", fmt.Errorf("error creating a strategic patch: %v", err)
-	}
-	return string(patch), nil
-}
-
 // refKey returns a key for the given ObjectReference. If the ObjectReference
 // doesn't include a namespace, the passed in namespace is used for the reference
 func refKey(namespace string, ref *kapi.ObjectReference) string {
@@ -751,4 +731,32 @@ func ValidateNodeSelector(nodeSelector map[string]string, fldPath *field.Path) f
 		}
 	}
 	return allErrs
+}
+
+func diffBuildSpec(newer, older buildapi.BuildSpec) (string, error) {
+	newerObj := &buildapi.Build{Spec: newer}
+	olderObj := &buildapi.Build{Spec: older}
+	diffBytes, err := CreateBuildPatch(olderObj, newerObj)
+	if err != nil {
+		return "", err
+	}
+	return string(diffBytes), nil
+}
+
+func CreateBuildPatch(older, newer *buildapi.Build) ([]byte, error) {
+	codec := kapi.Codecs.LegacyCodec(v1.LegacySchemeGroupVersion)
+
+	newerJSON, err := runtime.Encode(codec, newer)
+	if err != nil {
+		return nil, fmt.Errorf("error encoding newer: %v", err)
+	}
+	olderJSON, err := runtime.Encode(codec, older)
+	if err != nil {
+		return nil, fmt.Errorf("error encoding older: %v", err)
+	}
+	patch, err := strategicpatch.CreateTwoWayMergePatch(olderJSON, newerJSON, &v1.Build{})
+	if err != nil {
+		return nil, fmt.Errorf("error creating a strategic patch: %v", err)
+	}
+	return patch, nil
 }

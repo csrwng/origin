@@ -27,13 +27,9 @@ var (
 	// for any other changes to happen when testing whether only a single build got processed
 	BuildControllerTestWait = 10 * time.Second
 
-	// BuildPodControllerTestWait is the time that RunBuildPodControllerTest waits
-	// after a state transition to make sure other state transitions don't occur unexpectedly
-	BuildPodControllerTestWait = 10 * time.Second
-
-	// BuildPodControllerTestTransitionTimeout is the time RunBuildPodControllerTest waits
+	// BuildControllerTestTransitionTimeout is the time RunBuildControllerPodSyncTest waits
 	// for a build trasition to occur after the pod's status has been updated
-	BuildPodControllerTestTransitionTimeout = 60 * time.Second
+	BuildControllerTestTransitionTimeout = 60 * time.Second
 
 	// BuildControllersWatchTimeout is used by all tests to wait for watch events. In case where only
 	// a single watch event is expected, the test will fail after the timeout.
@@ -168,7 +164,7 @@ type buildControllerPodTest struct {
 	States []buildControllerPodState
 }
 
-func RunBuildPodControllerTest(t testingT, osClient *client.Client, kClient kclientset.Interface) {
+func RunBuildControllerPodSyncTest(t testingT, osClient *client.Client, kClient kclientset.Interface) {
 	ns := testutil.Namespace()
 
 	tests := []buildControllerPodTest{
@@ -305,7 +301,7 @@ func RunBuildPodControllerTest(t testingT, osClient *client.Client, kClient kcli
 							errChan <- fmt.Errorf("unexpected event received: %s, object: %#v", e.Type, e.Object)
 							return
 						}
-						if done {
+						if done && b.Status.Phase != state.BuildPhase {
 							errChan <- fmt.Errorf("build %s/%s transitioned to new state (%s) after reaching desired state", b.Namespace, b.Name, b.Status.Phase)
 							return
 						}
@@ -320,7 +316,7 @@ func RunBuildPodControllerTest(t testingT, osClient *client.Client, kClient kcli
 				case err := <-errChan:
 					t.Errorf("%s: Error %v", test.Name, err)
 					return false
-				case <-time.After(BuildPodControllerTestTransitionTimeout):
+				case <-time.After(BuildControllerTestTransitionTimeout):
 					t.Errorf("%s: Timed out waiting for build %s/%s to reach state %s. Current state: %s", test.Name, b.Namespace, b.Name, state.BuildPhase, b.Status.Phase)
 					return false
 				case <-stateReached:
@@ -333,7 +329,7 @@ func RunBuildPodControllerTest(t testingT, osClient *client.Client, kClient kcli
 					t.Errorf("%s: Error %v", test.Name, err)
 					return false
 
-				case <-time.After(BuildPodControllerTestWait):
+				case <-time.After(BuildControllerTestWait):
 					// After waiting for a set time, if no other state is reached, continue to wait for next state transition
 					return true
 				}
@@ -653,6 +649,10 @@ func RunBuildRunningPodDeleteTest(t testingT, clusterAdminClient *client.Client,
 	if newBuild.Status.Phase != buildapi.BuildPhaseError {
 		t.Fatalf("expected build status to be marked error, but was marked %s", newBuild.Status.Phase)
 	}
+
+	// allow time for the failed event to get created
+	time.Sleep(5 * time.Second)
+
 	events, err := clusterAdminKubeClientset.Core().Events(testutil.Namespace()).Search(kapi.Scheme, newBuild)
 	if err != nil {
 		t.Fatalf("error getting build events: %v", err)
