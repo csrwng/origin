@@ -2,6 +2,7 @@ package image_ecosystem
 
 import (
 	"fmt"
+	"os/exec"
 	"time"
 
 	g "github.com/onsi/ginkgo"
@@ -90,6 +91,23 @@ func PostgreSQLReplicationTestFactory(oc *exutil.CLI, image string) func() {
 		err = oc.KubeFramework().WaitForAnEndpoint(postgreSQLHelperName)
 		o.Expect(err).NotTo(o.HaveOccurred())
 
+		logf := func(msg string, args ...interface{}) {
+			logmsg := fmt.Sprintf("************** %v ===> %s", time.Now(), msg)
+			fmt.Fprintf(g.GinkgoWriter, logmsg, args...)
+		}
+
+		execCmd := func(cmd ...string) {
+			logf("Executing: %v", cmd)
+			args := []string{}
+			if len(cmd) > 0 {
+				args = cmd[1:]
+			}
+			c := exec.Command(cmd[0], args...)
+			c.Stdout = g.GinkgoWriter
+			c.Stderr = g.GinkgoWriter
+			c.Run()
+		}
+
 		tableCounter := 0
 		assertReplicationIsWorking := func(masterDeployment, slaveDeployment string, slaveCount int) (exutil.Database, []exutil.Database, exutil.Database) {
 			check := func(err error) {
@@ -115,7 +133,13 @@ func PostgreSQLReplicationTestFactory(oc *exutil.CLI, image string) func() {
 			check(err)
 
 			// Test if we can query as admin
+			logf("about to wait for an endpoint")
 			oc.KubeFramework().WaitForAnEndpoint("postgresql-master")
+			logf("master endpoint is available")
+			for i := 0; i < 25; i++ {
+				masterHostname := fmt.Sprintf("postgresql-master.%s.svc.cluster.local", oc.Namespace())
+				execCmd("dig", "@127.0.0.1", masterHostname, "+short", "+time=1")
+			}
 			err = helper.TestRemoteLogin(oc, "postgresql-master")
 			check(err)
 
