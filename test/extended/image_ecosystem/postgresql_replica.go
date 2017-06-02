@@ -92,7 +92,7 @@ func PostgreSQLReplicationTestFactory(oc *exutil.CLI, image string) func() {
 		o.Expect(err).NotTo(o.HaveOccurred())
 
 		logf := func(msg string, args ...interface{}) {
-			logmsg := fmt.Sprintf("************** %v ===> %s", time.Now(), msg)
+			logmsg := fmt.Sprintf("************** %v ===> %s\n", time.Now(), msg)
 			fmt.Fprintf(g.GinkgoWriter, logmsg, args...)
 		}
 
@@ -136,10 +136,12 @@ func PostgreSQLReplicationTestFactory(oc *exutil.CLI, image string) func() {
 			logf("about to wait for an endpoint")
 			oc.KubeFramework().WaitForAnEndpoint("postgresql-master")
 			logf("master endpoint is available")
-			for i := 0; i < 25; i++ {
+			oc.Run("get").Args("pods").Execute()
+			for i := 0; i < 5; i++ {
 				masterHostname := fmt.Sprintf("postgresql-master.%s.svc.cluster.local", oc.Namespace())
 				execCmd("dig", "@127.0.0.1", masterHostname, "+short", "+time=1")
 			}
+			oc.Run("get").Args("pods").Execute()
 			err = helper.TestRemoteLogin(oc, "postgresql-master")
 			check(err)
 
