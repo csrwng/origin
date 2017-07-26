@@ -1189,7 +1189,9 @@ func setBuildCompletionData(build *buildapi.Build, pod *v1.Pod, update *buildUpd
 			update.setLogSnippet(msg)
 		}
 	}
-
+	if update.logSnippet == nil {
+		update.setLogSnippet("[empty]")
+	}
 }
 
 // hasError returns true if any error (aggregate or no) matches any of the

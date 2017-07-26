@@ -788,11 +788,14 @@ func TestSetBuildCompletionTimestampAndDuration(t *testing.T) {
 	buildWithStartTime := &buildapi.Build{}
 	buildWithStartTime.Status.StartTimestamp = &startTime
 	buildWithNoStartTime := &buildapi.Build{}
+	podTerminatedMessage := "pod was terminated"
+	emptyTerminatedMessage := "[empty]"
 	tests := []struct {
-		name         string
-		build        *buildapi.Build
-		podStartTime *metav1.Time
-		expected     *buildUpdate
+		name                 string
+		build                *buildapi.Build
+		podStartTime         *metav1.Time
+		podTerminatedMessage string
+		expected             *buildUpdate
 	}{
 		{
 			name:         "build with start time",
@@ -801,6 +804,7 @@ func TestSetBuildCompletionTimestampAndDuration(t *testing.T) {
 			expected: &buildUpdate{
 				completionTime: &afterStartTimeBeforeNow,
 				duration:       &greaterThanZeroLessThanSinceStartTime,
+				logSnippet:     &emptyTerminatedMessage,
 			},
 		},
 		{
@@ -811,6 +815,7 @@ func TestSetBuildCompletionTimestampAndDuration(t *testing.T) {
 				startTime:      &earlierTime,
 				completionTime: &afterStartTimeBeforeNow,
 				duration:       &atLeastOneHour,
+				logSnippet:     &emptyTerminatedMessage,
 			},
 		},
 		{
@@ -821,6 +826,18 @@ func TestSetBuildCompletionTimestampAndDuration(t *testing.T) {
 				startTime:      &afterStartTimeBeforeNow,
 				completionTime: &afterStartTimeBeforeNow,
 				duration:       &zeroDuration,
+				logSnippet:     &emptyTerminatedMessage,
+			},
+		},
+		{
+			name:         "build with start time and pod terminated message",
+			build:        buildWithStartTime,
+			podStartTime: &earlierTime,
+			podTerminatedMessage: podTerminatedMessage,
+			expected: &buildUpdate{
+				completionTime: &afterStartTimeBeforeNow,
+				duration:       &greaterThanZeroLessThanSinceStartTime,
+				logSnippet:     &podTerminatedMessage,
 			},
 		},
 	}
@@ -829,6 +846,17 @@ func TestSetBuildCompletionTimestampAndDuration(t *testing.T) {
 		update := &buildUpdate{}
 		pod := &v1.Pod{}
 		pod.Status.StartTime = test.podStartTime
+		if len(test.podTerminatedMessage) > 0 {
+			pod.Status.ContainerStatuses = []v1.ContainerStatus{
+				{
+					State: v1.ContainerState{
+						Terminated: &v1.ContainerStateTerminated{
+							Message: test.podTerminatedMessage,
+						},
+					},
+				},
+			}
+		}
 		setBuildCompletionData(test.build, pod, update)
 		// Ensure that only the fields in the expected update are set
 		if test.expected.podNameAnnotation == nil && (test.expected.podNameAnnotation != update.podNameAnnotation) {
@@ -862,6 +890,9 @@ func TestSetBuildCompletionTimestampAndDuration(t *testing.T) {
 		if test.expected.outputRef == nil && (test.expected.outputRef != update.outputRef) {
 			t.Errorf("%s: outputRef should not be set", test.name)
 			continue
+		}
+		if update.logSnippet == nil || (*test.expected.logSnippet) != (*update.logSnippet) {
+			t.Errorf("%s: did not get expected log snippet. Got: %s, Expected: %s", test.name, *update.logSnippet, *test.expected.logSnippet)
 		}
 		now := metav1.NewTime(time.Now().Add(2 * time.Second))
 		if test.expected.startTime != nil {
