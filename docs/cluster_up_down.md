@@ -48,24 +48,7 @@ a URL to access the management console for your cluster.
 
 1. Install Docker with your platform's package manager.
 2. Configure the Docker daemon with an insecure registry parameter of `172.30.0.0/16`
-   - In RHEL and Fedora, edit the `/etc/sysconfig/docker` file and add or uncomment the following line:
-     ```
-     INSECURE_REGISTRY='--insecure-registry 172.30.0.0/16'
-     ```
-     or edit the `/etc/docker/daemon.json` file and add the following:
-     ```json
-     {
-        "insecure-registries": [
-          "172.30.0.0/16"
-        ]
-     }
-     ```
-
-   - After editing the config, reload systemd and restart the Docker daemon.
-     ```
-     $ sudo systemctl daemon-reload
-     $ sudo systemctl restart docker
-     ```
+   Ensure that you restart Docker after changing the config.
 3. Ensure that your firewall allows containers access to the OpenShift master API (8443/tcp) and DNS (53/udp) endpoints.
    In RHEL and Fedora, you can create a new firewalld zone to enable this access:
    - Determine the Docker bridge network container subnet:
@@ -112,12 +95,7 @@ $ oc cluster down
 ### MacOS with Docker for Mac
 
 1. Install [Docker for Mac](https://docs.docker.com/docker-for-mac/) making sure you meet the [prerequisites](https://docs.docker.com/docker-for-mac/#/what-to-know-before-you-install).
-2. Once Docker is running, add an insecure registry of `172.30.0.0/16`:
-   - From the Docker menu in the toolbar, select `Preferences...`
-   - Click on `Daemon` in the preferences dialog (note: on some older versions of Docker for Mac this is under `Advanced`)
-   - Under `Insecure registries:`, click on the `+` icon to add a new entry
-   - Enter `172.30.0.0/16` and press `return`
-   - Click on `Apply and Restart`
+2. Once Docker is running, add an insecure registry of `172.30.0.0/16 by using Docker Preferences.
 3. Install `socat`
    - If not already installed, install [Homebrew for Mac](http://brew.sh/)
    - Install socat
@@ -202,17 +180,7 @@ Once the machine has been created, the `--create-machine` argument is no longer 
 ### Windows with Docker for Windows
 
 1. Install [Docker for Windows](https://docs.docker.com/docker-for-windows/) making sure you meet the [prerequisites](https://docs.docker.com/docker-for-windows/#/what-to-know-before-you-install).
-2. Once Docker is running, add an insecure registry of `172.30.0.0/16`:
-   - Right click on the Docker icon in the notification area and select `Settings...`
-   - Click on `Docker Daemon` in the settings dialog
-   - Edit the Docker daemon configuration by adding `"172.30.0.0/16"` to the `"insecure-registries":` setting
-     ```
-     {
-       "registry-mirrors": [],
-       "insecure-registries": [ "172.30.0.0/16" ]
-     }
-     ```
-   - Click on `Apply` and Docker will restart
+2. Once Docker is running, add an insecure registry of `172.30.0.0/16 by adding it in Docker settings
 3. Download the Windows `oc.exe` binary from [openshift-origin-client-tools-VERSION-windows.zip](https://github.com/openshift/origin/releases) and place it in your path.
 
    > Please be aware that the 'oc cluster' set of commands are only available in the 1.3+ or newer releases.
