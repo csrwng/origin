@@ -91,9 +91,11 @@ func TestDisabledGroupVersion(t *testing.T) {
 
 // TestKubeConfigFile ensures that a kube config file, regardless of validity, is handled properly
 func TestKubeConfigFile(t *testing.T) {
+	/*
 	badCAPath := "/tmp/missing/ca.pem"
 	badClientCertPath := "/tmp/missing/client.pem"
 	badClientKeyPath := "/tmp/missing/client-key.pem"
+	*/
 	dir := bootstrapTestDir(t)
 
 	defer os.RemoveAll(dir)
@@ -113,6 +115,7 @@ func TestKubeConfigFile(t *testing.T) {
 			cluster:  &namedCluster,
 			errRegex: errNoConfiguration,
 		},
+		/*
 		{
 			test:           "missing context (specified context is missing)",
 			cluster:        &namedCluster,
@@ -248,6 +251,7 @@ func TestKubeConfigFile(t *testing.T) {
 			},
 			errRegex: "",
 		},
+		*/
 	}
 
 	for _, tt := range tests {
@@ -268,6 +272,10 @@ func TestKubeConfigFile(t *testing.T) {
 			}
 
 			kubeConfigFile, err := newKubeConfigFile(kubeConfig)
+
+			contents, _ := ioutil.ReadFile(kubeConfigFile)
+
+			t.Errorf("The configFile is %s, err = %v\ncontent:\n%s", kubeConfigFile, err, string(contents))
 
 			if err == nil {
 				defer os.Remove(kubeConfigFile)
