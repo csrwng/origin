@@ -533,7 +533,7 @@ var (
 
 			// Test does not allow enough time for the pods to be created before deleting them
 			// https://bugzilla.redhat.com/show_bug.cgi?id=1825372
-			`Pod Container Status should never report success for a pending container`,
+			// `Pod Container Status should never report success for a pending container`,
 		},
 		"[Skipped:gce]": {
 			// Requires creation of a different compute instance in a different zone and is not compatible with volumeBindingMode of WaitForFirstConsumer which we use in 4.x
