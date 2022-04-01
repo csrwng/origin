@@ -9,6 +9,7 @@ import (
 	o "github.com/onsi/gomega"
 
 	corev1 "k8s.io/api/core/v1"
+	e2e "k8s.io/kubernetes/test/e2e/framework"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -90,6 +91,17 @@ var _ = g.Describe("[sig-arch] Managed cluster should", func() {
 			g.By(fmt.Sprintf("verifying the %s/%s route serves %d from %s", r.ns, r.name, r.expect, url))
 		}
 
+		adminOC := oc.AsAdmin()
+		e2e.Logf("Pods in openshift-monitoring")
+		e2e.Logf(adminOC.Run("get").Args("pods", "-n", "openshift-monitoring").Output())
+		e2e.Logf(adminOC.Run("describe").Args("pod/prometheus-k8s-0", "-n", "openshift-monitoring").Output())
+		e2e.Logf(adminOC.Run("describe").Args("pod/prometheus-k8s-1", "-n", "openshift-monitoring").Output())
+		e2e.Logf("Network policies")
+		e2e.Logf(adminOC.Run("get").Args("networkpolicies", "-A").Output())
+		e2e.Logf("Testing access from the router to prometheus service")
+		e2e.Logf(adminOC.Run("exec").Args("-n", "openshift-ingress", "deployment/router-default", "--", "curl", "-kv", "https://prometheus-k8s.openshift-monitoring.svc:9091/").Output())
+		e2e.Logf("Testing prometheus service inside the prometheus pods")
+		e2e.Logf(adminOC.Run("exec").Args("-n", "openshift-monitoring", "statefulset/prometheus-k8s", "--", "curl", "-kv", "https://localhost:9091").Output())
 		tester.Within(endpointWait, tests...)
 	})
 })
